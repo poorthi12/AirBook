@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="profile-page">
+
+    <!-- PROFILE HEADER -->
+
+    <div class="profile-hero">
+
+        <div class="profile-avatar">
+            {{ user.name[0]|upper }}
+        </div>
+
+        <div class="profile-heading">
+
+            <div class="profile-eyebrow">
+                SKYBOOK ACCOUNT
+            </div>
+
+            <h1>{{ user.name }}</h1>
+
+            <p>
+                {{ user.email }}
+            </p>
+
+        </div>
+
+        <div class="profile-actions">
+
+            <a href="{{ url_for('edit_profile') }}"
+            class="profile-edit-btn">
+                Edit Profile
+            </a>
+
+            <a href="{{ url_for('home') }}"
+            class="profile-home-btn">
+                ← Home
+            </a>
+
+        </div>
+
+
+    <!-- ACCOUNT CONTENT -->
+
+    <div class="profile-grid">
+
+        <!-- PERSONAL INFORMATION -->
+
+        <div class="profile-card personal-card">
+
+            <div class="card-title">
+
+                <div>
+                    <span>ACCOUNT</span>
+                    <h2>Personal Information</h2>
+                </div>
+
+                <div class="card-icon">
+                    ◉
+                </div>
+
+            </div>
+
+
+            <div class="profile-fields">
+
+                <div class="profile-field">
+                    <span>FULL NAME</span>
+                    <strong>{{ user.name }}</strong>
+                </div>
+
+                <div class="profile-field">
+                    <span>EMAIL ADDRESS</span>
+                    <strong>{{ user.email }}</strong>
+                </div>
+
+                <div class="profile-field">
+                    <span>PHONE NUMBER</span>
+                    <strong>{{ user.phone }}</strong>
+                </div>
+
+                <div class="profile-field">
+                    <span>ACCOUNT STATUS</span>
+
+                    {% if user.verified %}
+                        <strong class="verified">
+                            ✓ VERIFIED
+                        </strong>
+                    {% else %}
+                        <strong class="not-verified">
+                            NOT VERIFIED
+                        </strong>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TRAVEL SUMMARY -->
+
+        <div class="profile-card travel-card">
+
+            <div class="card-title">
+
+                <div>
+                    <span>TRAVEL</span>
+                    <h2>My Activity</h2>
+                </div>
+
+                <div class="card-icon">
+                    ✈
+                </div>
+
+            </div>
+
+
+            <div class="activity-number">
+                {{ booking_count }}
+            </div>
+
+            <p class="activity-label">
+                Total Bookings
+            </p>
+
+
+            <a href="{{ url_for('booking_history') }}"
+               class="activity-btn">
+
+                View My Trips →
+
+            </a>
+
+        </div>
+
+
+        <!-- ACCOUNT ACTIONS -->
+
+        <div class="profile-card actions-card">
+
+            <div class="card-title">
+
+                <div>
+                    <span>ACCOUNT</span>
+                    <h2>Quick Actions</h2>
+                </div>
+
+            </div>
+
+
+            <a href="{{ url_for('booking_history') }}"
+               class="account-action">
+
+                <div>
+                    <strong>My Trips</strong>
+                    <span>View your booking history</span>
+                </div>
+
+                <b>→</b>
+
+            </a>
+
+
+            <a href="{{ url_for('home') }}"
+               class="account-action">
+
+                <div>
+                    <strong>Book a Flight</strong>
+                    <span>Search available flights</span>
+                </div>
+
+                <b>→</b>
+
+            </a>
+
+
+            <a href="{{ url_for('logout') }}"
+               class="account-action logout-action">
+
+                <div>
+                    <strong>Sign Out</strong>
+                    <span>Log out of your SkyBook account</span>
+                </div>
+
+                <b>→</b>
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

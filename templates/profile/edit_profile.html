@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="edit-profile-page">
+
+    <div class="edit-header">
+
+        <a href="{{ url_for('profile') }}" class="edit-back">
+            ← Back to Profile
+        </a>
+
+        <div class="edit-title">
+            <span>SKYBOOK ACCOUNT</span>
+            <h1>Edit Profile</h1>
+            <p>Update your personal information.</p>
+        </div>
+
+    </div>
+
+
+    <div class="edit-card">
+
+        <div class="edit-card-header">
+
+            <div class="edit-avatar">
+                {{ user.name[0]|upper }}
+            </div>
+
+            <div>
+                <strong>{{ user.name }}</strong>
+                <span>{{ user.email }}</span>
+            </div>
+
+        </div>
+
+
+        <form method="POST">
+
+            <div class="form-section">
+
+                <div class="section-label">
+                    PERSONAL INFORMATION
+                </div>
+
+
+                <div class="edit-field">
+
+                    <label for="name">
+                        Full Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value="{{ user.name }}"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="edit-field">
+
+                    <label for="email">
+                        Email Address
+                    </label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        value="{{ user.email }}"
+                        disabled
+                    >
+
+                    <small>
+                        Your email address cannot be changed here.
+                    </small>
+
+                </div>
+
+
+                <div class="edit-field">
+
+                    <label for="phone">
+                        Phone Number
+                    </label>
+
+                    <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        value="{{ user.phone }}"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="edit-actions">
+
+                <a href="{{ url_for('profile') }}"
+                   class="cancel-edit">
+                    Cancel
+                </a>
+
+                <button type="submit"
+                        class="save-profile">
+                    Save Changes
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}  

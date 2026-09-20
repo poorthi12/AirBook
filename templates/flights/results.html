@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}SkyBook | Flight Results{% endblock %}
+
+{% block content %}
+
+<div class="results-page">
+
+    <div class="results-header">
+
+        <a href="{{ url_for('home') }}" class="back-btn">
+            ← Back
+        </a>
+
+        <h1>Available Flights</h1>
+
+        <p>
+            {{ from_city }} → {{ to_city }}
+        </p>
+
+    </div>
+
+
+    <div class="flight-results">
+
+        {% if flights %}
+
+            {% for flight in flights %}
+
+            <div class="flight-card">
+
+                <div class="airline-info">
+
+                    <div class="airline-logo">
+                        ✈
+                    </div>
+
+                    <div>
+                        <h3>{{ flight.airline }}</h3>
+                        <span>{{ flight.flight_number }}</span>
+                    </div>
+
+                </div>
+
+
+                <div class="flight-time">
+
+                    <div>
+                        <strong>{{ flight.departure }}</strong>
+                        <span>{{ flight.from_code }}</span>
+                    </div>
+
+                    <div class="duration">
+
+                        <span>{{ flight.duration }}</span>
+
+                        <div class="flight-line">
+                            ─────────✈
+                        </div>
+
+                    </div>
+
+                    <div>
+                        <strong>{{ flight.arrival }}</strong>
+                        <span>{{ flight.to_code }}</span>
+                    </div>
+
+                </div>
+
+
+                <div class="flight-price">
+
+                    <small>From</small>
+
+                    <strong>
+                        ₹{{ "{:,}".format(flight.price) }}
+                    </strong>
+
+                    <span>
+                        {{ flight.available_seats }} seats left
+                    </span>
+
+                </div>
+
+
+                    <div>
+
+                        <form action="{{ url_for('flight_details', flight_id=flight._id) }}" method="GET">
+
+                            <button type="submit" class="select-flight">
+                                SELECT
+                            </button>
+
+                        </form>
+
+                    </div>
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="no-flights">
+
+                <h2>No flights found</h2>
+
+                <p>
+                    We couldn't find flights for
+                    {{ from_city }} → {{ to_city }}.
+                </p>
+
+                <a href="{{ url_for('home') }}">
+                    Search Again
+                </a>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

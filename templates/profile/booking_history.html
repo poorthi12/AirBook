@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="trips-page">
+
+    <!-- PAGE HEADER -->
+    <div class="trips-header">
+
+        <div>
+            <div class="eyebrow">SKYBOOK</div>
+            <h1>My Trips</h1>
+            <p>Manage your flights, bookings and travel details.</p>
+        </div>
+
+        <a href="{{ url_for('home') }}" class="new-booking-btn">
+            + Book a Flight
+        </a>
+
+    </div>
+
+
+    <!-- TRIP TABS -->
+    <div class="trip-tabs">
+
+        <button class="trip-tab active" onclick="showTrips('upcoming', this)">
+            Upcoming
+            <span>{{ upcoming|length }}</span>
+        </button>
+
+        <button class="trip-tab" onclick="showTrips('completed', this)">
+            Completed
+            <span>{{ completed|length }}</span>
+        </button>
+
+        <button class="trip-tab" onclick="showTrips('cancelled', this)">
+            Cancelled
+            <span>{{ cancelled|length }}</span>
+        </button>
+
+    </div>
+
+
+    <!-- UPCOMING -->
+    <div id="upcoming" class="trip-section active">
+
+        {% if upcoming %}
+
+            {% for booking in upcoming %}
+
+            <div class="official-booking-card">
+
+                <!-- CARD HEADER -->
+                <div class="booking-card-header">
+
+                    <div class="airline-info">
+
+                        <div class="airline-logo">
+                            ✈
+                        </div>
+
+                        <div>
+                            <strong>{{ booking.airline }}</strong>
+                            <span>{{ booking.flight_number }}</span>
+                        </div>
+
+                    </div>
+
+                    <div class="confirmed-badge">
+                        ✓ {{ booking.booking_status }}
+                    </div>
+
+                </div>
+
+                <div class="flight-date">
+                    📅 {{ booking.formatted_date | replace("-", " ") }}
+                </div>
+
+                <!-- ROUTE -->
+                <div class="flight-route">
+
+                    <div class="route-point">
+
+                        <strong>{{ booking.from_code }}</strong>
+
+                        <span>
+                            {{ booking["from"] }}
+                        </span>
+
+                        <small>
+                            {{ booking.departure }}
+                        </small>
+
+                    </div>
+
+
+                    <div class="route-middle">
+
+                        <span class="duration-line"></span>
+
+                        <div class="plane-icon">✈</div>
+
+                        <span class="route-label">
+                            Flight
+                        </span>
+
+                    </div>
+
+
+                    <div class="route-point destination">
+
+                        <strong>{{ booking.to_code }}</strong>
+
+                        <span>
+                            {{ booking["to"] }}
+                        </span>
+
+                        <small>
+                            {{ booking.arrival }}
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <!-- BOOKING INFO -->
+                <div class="booking-info-grid">
+
+                    <div class="info-item">
+                        <span>BOOKING REFERENCE</span>
+                        <strong>{{ booking.pnr }}</strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>PASSENGER</span>
+                        <strong>{{ booking.passenger.name }}</strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>SEAT</span>
+                        <strong>{{ booking.seat }}</strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>PAYMENT</span>
+                        <strong class="paid-text">
+                            {{ booking.payment_status }}
+                        </strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>TOTAL PAID</span>
+                        <strong>₹{{ booking.total }}</strong>
+                    </div>
+
+                </div>
+
+
+                <!-- CARD FOOTER -->
+                <div class="booking-card-footer">
+
+                    <span>
+                        Your ticket is confirmed. Keep your booking reference
+                        for future travel.
+                    </span>
+
+                        <div class="booking-actions">
+
+                            <a href="{{ url_for('ticket', booking_id=booking._id) }}"
+                            class="view-ticket-btn">
+                                View Ticket →
+                            </a>
+                            <form action="{{ url_for('cancel_booking', booking_id=booking._id) }}"
+                                method="POST"
+                                onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+
+                                <button type="submit" class="cancel-btn">
+                                    CANCEL BOOKING
+                                </button>
+
+                            </form>
+                        </div>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="empty-trips">
+
+                <div class="empty-plane">✈</div>
+
+                <h2>No upcoming trips</h2>
+
+                <p>
+                    Your confirmed flights will appear here.
+                </p>
+
+                <a href="{{ url_for('home') }}" class="book-now-btn">
+                    Search Flights
+                </a>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- COMPLETED -->
+    <div id="completed" class="trip-section">
+
+        {% if completed %}
+
+            {% for booking in completed %}
+
+                <div class="simple-trip-card">
+                    <strong>
+                        {{ booking.flight_number }}
+                    </strong>
+
+                    <span>
+                        {{ booking["from"] }} → {{ booking["to"] }}
+                    </span>
+
+                    <span>
+                        PNR: {{ booking.pnr }}
+                    </span>
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="empty-trips">
+
+                <div class="empty-plane">✓</div>
+
+                <h2>No completed trips</h2>
+
+                <p>
+                    Your completed journeys will appear here.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- CANCELLED -->
+    <div id="cancelled" class="trip-section">
+
+        {% if cancelled %}
+
+            {% for booking in cancelled %}
+
+                <div class="simple-trip-card cancelled-card">
+
+                    <strong>
+                        {{ booking.flight_number }}
+                    </strong>
+
+                    <span>
+                        {{ booking["from"] }} → {{ booking["to"] }}
+                    </span>
+
+                    <span>
+                        PNR: {{ booking.pnr }}
+                    </span>
+
+                    <span class="cancelled-text">
+                        CANCELLED
+                    </span>
+
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="empty-trips">
+
+                <div class="empty-plane">✓</div>
+
+                <h2>No cancelled trips</h2>
+
+                <p>
+                    Cancelled bookings will appear here.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<script>
+
+function showTrips(section, button) {
+
+    document.querySelectorAll(".trip-section").forEach(function(element) {
+        element.classList.remove("active");
+    });
+
+    document.querySelectorAll(".trip-tab").forEach(function(element) {
+        element.classList.remove("active");
+    });
+
+    document.getElementById(section).classList.add("active");
+
+    button.classList.add("active");
+}
+
+</script>
+
+{% endblock %}      

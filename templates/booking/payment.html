@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Payment | SkyBook{% endblock %}
+
+{% block content %}
+
+<div class="payment-page">
+
+    <div class="payment-container">
+
+        <a href="{{ url_for('booking_review') }}"
+           class="back-btn">
+            ← Back to Review
+        </a>
+
+        <div class="payment-header">
+            <span>SECURE PAYMENT</span>
+            <h1>Complete Your Payment</h1>
+            <p>Choose a payment method to confirm your booking.</p>
+        </div>
+
+
+        <div class="payment-layout">
+
+
+            <!-- PAYMENT METHODS -->
+
+            <div class="payment-card">
+
+                <h2>Payment Method</h2>
+
+                <p class="payment-subtitle">
+                    Select how you would like to pay.
+                </p>
+
+
+                <form method="POST">
+
+
+                    <label class="payment-option">
+
+                        <input
+                            type="radio"
+                            name="payment_method"
+                            value="UPI"
+                            required>
+
+                        <div class="payment-option-content">
+
+                            <div class="payment-icon">
+                                ₹
+                            </div>
+
+                            <div>
+                                <strong>UPI</strong>
+                                <span>Google Pay, PhonePe, Paytm</span>
+                            </div>
+
+                        </div>
+
+                    </label>
+
+
+                    <label class="payment-option">
+
+                        <input
+                            type="radio"
+                            name="payment_method"
+                            value="CARD">
+
+                        <div class="payment-option-content">
+
+                            <div class="payment-icon">
+                                💳
+                            </div>
+
+                            <div>
+                                <strong>Credit / Debit Card</strong>
+                                <span>Visa, Mastercard, RuPay</span>
+                            </div>
+
+                        </div>
+
+                    </label>
+
+
+                    <label class="payment-option">
+
+                        <input
+                            type="radio"
+                            name="payment_method"
+                            value="NET_BANKING">
+
+                        <div class="payment-option-content">
+
+                            <div class="payment-icon">
+                                🏦
+                            </div>
+
+                            <div>
+                                <strong>Net Banking</strong>
+                                <span>Pay using your bank account</span>
+                            </div>
+
+                        </div>
+
+                    </label>
+
+
+                    <label class="payment-option">
+
+                        <input
+                            type="radio"
+                            name="payment_method"
+                            value="WALLET">
+
+                        <div class="payment-option-content">
+
+                            <div class="payment-icon">
+                                👛
+                            </div>
+
+                            <div>
+                                <strong>Wallet</strong>
+                                <span>Pay using a digital wallet</span>
+                            </div>
+
+                        </div>
+
+                    </label>
+
+
+                    <button
+                        type="submit"
+                        class="pay-btn">
+
+                        PAY ₹{{ "{:,}".format(total) }}
+
+                    </button>
+
+                </form>
+
+            </div>
+
+
+            <!-- ORDER SUMMARY -->
+
+            <div class="payment-summary">
+
+                <h3>Booking Summary</h3>
+
+
+                <div class="summary-airline">
+
+                    <div class="summary-icon">
+                        ✈
+                    </div>
+
+                    <div>
+                        <strong>{{ flight.airline }}</strong>
+                        <span>{{ flight.flight_number }}</span>
+                    </div>
+
+                </div>
+
+
+                <div class="payment-route">
+
+                    <div>
+                        <strong>{{ flight.from_code }}</strong>
+                        <span>{{ flight["from"] }}</span>
+                    </div>
+
+                    <span>→</span>
+
+                    <div>
+                        <strong>{{ flight.to_code }}</strong>
+                        <span>{{ flight["to"] }}</span>
+                    </div>
+
+                </div>
+
+
+                <div class="payment-details">
+
+                    <div>
+                        <span>PASSENGER</span>
+                        <strong>{{ passenger.name }}</strong>
+                    </div>
+
+                    <div>
+                        <span>SEAT</span>
+                        <strong>{{ selected_seat }}</strong>
+                    </div>
+
+                    <div>
+                        <span>DEPARTURE</span>
+                        <strong>{{ flight.departure }}</strong>
+                    </div>
+
+                </div>
+
+
+                <div class="payment-price">
+
+                    <div>
+                        <span>Base Fare</span>
+                        <strong>
+                            ₹{{ "{:,}".format(base_fare) }}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Taxes & Fees</span>
+                        <strong>
+                            ₹{{ "{:,}".format(taxes) }}
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <div class="payment-total">
+
+                    <span>Total Amount</span>
+
+                    <strong>
+                        ₹{{ "{:,}".format(total) }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

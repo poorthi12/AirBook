@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Review Booking | SkyBook{% endblock %}
+
+{% block content %}
+
+<div class="review-page">
+
+    <div class="review-container">
+
+        <a href="{{ url_for('passenger_details') }}"
+           class="back-btn">
+            ← Back to Passenger Details
+        </a>
+
+        <div class="review-header">
+            <span>BOOKING REVIEW</span>
+            <h1>Review Your Trip</h1>
+            <p>Check all the details before proceeding to payment.</p>
+        </div>
+
+
+        <!-- FLIGHT -->
+
+        <div class="review-card">
+
+            <div class="card-heading">
+                <h2>Flight Details</h2>
+                <span>{{ flight.flight_number }}</span>
+            </div>
+
+            <div class="review-flight">
+
+                <div class="review-airport">
+
+                    <strong>{{ flight.departure }}</strong>
+
+                    <span>{{ flight.from_code }}</span>
+
+                    <small>{{ flight["from"] }}</small>
+
+                </div>
+
+
+                <div class="review-route">
+
+                    <span>{{ flight.duration }}</span>
+
+                    <div>
+                        ───────── ✈ ─────────
+                    </div>
+
+                    <small>Non-stop</small>
+
+                </div>
+
+
+                <div class="review-airport">
+
+                    <strong>{{ flight.arrival }}</strong>
+
+                    <span>{{ flight.to_code }}</span>
+
+                    <small>{{ flight["to"] }}</small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PASSENGER -->
+
+        <div class="review-card">
+
+            <div class="card-heading">
+                <h2>Passenger Details</h2>
+                <span>PASSENGER 1</span>
+            </div>
+
+            <div class="passenger-review-grid">
+
+                <div>
+                    <span>FULL NAME</span>
+                    <strong>{{ passenger.name }}</strong>
+                </div>
+
+                <div>
+                    <span>EMAIL</span>
+                    <strong>{{ passenger.email }}</strong>
+                </div>
+
+                <div>
+                    <span>PHONE</span>
+                    <strong>{{ passenger.phone }}</strong>
+                </div>
+
+                <div>
+                    <span>GENDER</span>
+                    <strong>
+                        {{ passenger.gender if passenger.gender else "Not provided" }}
+                    </strong>
+                </div>
+
+                <div>
+                    <span>DATE OF BIRTH</span>
+                    <strong>
+                        {{ passenger.dob if passenger.dob else "Not provided" }}
+                    </strong>
+                </div>
+
+                <div>
+                    <span>SEAT</span>
+                    <strong>{{ selected_seat }}</strong>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PRICE -->
+
+        <div class="review-card price-card">
+
+            <div class="card-heading">
+                <h2>Fare Summary</h2>
+            </div>
+
+            <div class="fare-row">
+
+                <span>Base Fare</span>
+
+                <strong>
+                    ₹{{ "{:,}".format(base_fare) }}
+                </strong>
+
+            </div>
+
+            <div class="fare-row">
+
+                <span>Taxes & Fees</span>
+
+                <strong>
+                    ₹{{ "{:,}".format(taxes) }}
+                </strong>
+
+            </div>
+
+            <div class="fare-divider"></div>
+
+            <div class="fare-total">
+
+                <span>Total Amount</span>
+
+                <strong>
+                    ₹{{ "{:,}".format(total) }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- PAYMENT -->
+
+        <div class="review-action">
+
+            <div>
+                <span>Total</span>
+
+                <strong>
+                    ₹{{ "{:,}".format(total) }}
+                </strong>
+            </div>
+
+            <form action="{{ url_for('payment') }}" method="GET">
+
+                <button type="submit" class="continue-btn">
+                    PROCEED TO PAYMENT →
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

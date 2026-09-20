@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Confirmed | SkyBook{% endblock %}
+
+{% block content %}
+
+<div class="confirmation-page">
+
+    <div class="confirmation-container">
+
+        <div class="success-icon">
+            ✓
+        </div>
+
+        <div class="confirmation-header">
+
+            <span>BOOKING CONFIRMED</span>
+
+            <h1>Your flight is booked!</h1>
+
+            <p>
+                Your payment was successful and your ticket has been confirmed.
+            </p>
+
+        </div>
+
+
+        <div class="pnr-card">
+
+            <span>BOOKING REFERENCE</span>
+
+            <strong>{{ booking.pnr }}</strong>
+
+            <p>
+                Keep this PNR for managing your booking.
+            </p>
+
+        </div>
+
+
+        <div class="confirmation-card">
+
+            <div class="confirmation-title">
+
+                <div>
+                    <span>FLIGHT</span>
+                    <h2>{{ booking.flight_number }}</h2>
+                </div>
+
+                <div>
+                    <span>AIRLINE</span>
+                    <strong>{{ booking.airline }}</strong>
+                </div>
+
+            </div>
+            <div class="ticket-date">
+                📅 {{ booking.formatted_date }}
+            </div>
+
+            <div class="confirmation-route">
+
+                <div>
+
+                    <strong>{{ booking.departure }}</strong>
+
+                    <span>{{ booking.from_code }}</span>
+
+                    <small>{{ booking["from"] }}</small>
+
+                </div>
+
+
+                <div class="confirmation-line">
+
+                    ───────── ✈ ─────────
+
+                </div>
+
+
+                <div>
+
+                    <strong>{{ booking.arrival }}</strong>
+
+                    <span>{{ booking.to_code }}</span>
+
+                    <small>{{ booking["to"] }}</small>
+
+                </div>
+
+            </div>
+
+
+            <div class="confirmation-details">
+
+                <div>
+                    <span>PASSENGER</span>
+                    <strong>{{ booking.passenger.name }}</strong>
+                </div>
+
+                <div>
+                    <span>SEAT</span>
+                    <strong>{{ booking.seat }}</strong>
+                </div>
+
+                <div>
+                    <span>PAYMENT</span>
+                    <strong>{{ booking.payment_status }}</strong>
+                </div>
+
+                <div>
+                    <span>STATUS</span>
+                    <strong>{{ booking.booking_status }}</strong>
+                </div>
+
+            </div>
+
+
+            <div class="confirmation-price">
+
+                <span>Total Paid</span>
+
+                <strong>
+                    ₹{{ "{:,}".format(booking.total) }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="confirmation-actions">
+
+            <a href="{{ url_for('home') }}">
+                BACK TO HOME
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

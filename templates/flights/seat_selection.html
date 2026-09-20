@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Select Seat | SkyBook{% endblock %}
+
+{% block content %}
+
+<div class="seat-page">
+
+    <div class="seat-container">
+
+        <a href="{{ url_for('flight_details', flight_id=flight._id) }}"
+           class="back-btn">
+            ← Flight Details
+        </a>
+
+        <div class="seat-header">
+            <span>SEAT SELECTION</span>
+            <h1>{{ flight.flight_number }}</h1>
+            <p>
+                {{ flight["from"] }} → {{ flight["to"] }}
+            </p>
+        </div>
+
+        <div class="seat-layout">
+
+            <div class="aircraft">
+
+                <div class="cockpit">
+                    ✈
+                    <span>FRONT</span>
+                </div>
+
+                <form method="POST">
+
+                    <div class="seat-grid">
+
+                        {% for row in range(1, 31) %}
+
+                        <div class="seat-row">
+
+                            <!-- A -->
+                            <button
+                                type="button"
+                                class="seat {% if row|string + 'A' in booked_seats %}occupied{% endif %}"
+                                data-seat="{{ row }}A"
+                                {% if row|string + 'A' in booked_seats %}disabled{% endif %}>
+                                {{ row }}A
+                            </button>
+
+                            <!-- B -->
+                            <button
+                                type="button"
+                                class="seat {% if row|string + 'B' in booked_seats %}occupied{% endif %}"
+                                data-seat="{{ row }}B"
+                                {% if row|string + 'B' in booked_seats %}disabled{% endif %}>
+                                {{ row }}B
+                            </button>
+
+                            <!-- C -->
+                            <button
+                                type="button"
+                                class="seat {% if row|string + 'C' in booked_seats %}occupied{% endif %}"
+                                data-seat="{{ row }}C"
+                                {% if row|string + 'C' in booked_seats %}disabled{% endif %}>
+                                {{ row }}C
+                            </button>
+
+                            <span class="aisle">
+                                {{ row }}
+                            </span>
+
+                            <!-- D -->
+                            <button
+                                type="button"
+                                class="seat {% if row|string + 'D' in booked_seats %}occupied{% endif %}"
+                                data-seat="{{ row }}D"
+                                {% if row|string + 'D' in booked_seats %}disabled{% endif %}>
+                                {{ row }}D
+                            </button>
+
+                            <!-- E -->
+                            <button
+                                type="button"
+                                class="seat {% if row|string + 'E' in booked_seats %}occupied{% endif %}"
+                                data-seat="{{ row }}E"
+                                {% if row|string + 'E' in booked_seats %}disabled{% endif %}>
+                                {{ row }}E
+                            </button>
+
+                            <!-- F -->
+                            <button
+                                type="button"
+                                class="seat {% if row|string + 'F' in booked_seats %}occupied{% endif %}"
+                                data-seat="{{ row }}F"
+                                {% if row|string + 'F' in booked_seats %}disabled{% endif %}>
+                                {{ row }}F
+                            </button>
+
+                        </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                    <input
+                        type="hidden"
+                        name="seat"
+                        id="selected-seat">
+
+                    <div class="seat-footer">
+
+                        <div>
+                            <span>Selected Seat:</span>
+
+                            <strong id="seat-display">
+                                None
+                            </strong>
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="continue-btn">
+                            CONTINUE →
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+            <div class="seat-info">
+
+                <h3>Seat Information</h3>
+
+                <div class="legend">
+                    <span class="legend-box available"></span>
+                    Available
+                </div>
+
+                <div class="legend">
+                    <span class="legend-box selected"></span>
+                    Selected
+                </div>
+
+                <div class="legend">
+                    <span class="legend-box occupied"></span>
+                    Occupied
+                </div>
+
+                <p>
+                    Choose your preferred seat before continuing.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+const seats = document.querySelectorAll(".seat");
+const selectedSeat = document.getElementById("selected-seat");
+const seatDisplay = document.getElementById("seat-display");
+
+seats.forEach(seat => {
+
+    seat.addEventListener("click", function () {
+
+        if (this.disabled) {
+            return;
+        }
+
+        seats.forEach(s => {
+            s.classList.remove("selected");
+        });
+
+        this.classList.add("selected");
+
+        selectedSeat.value = this.dataset.seat;
+
+        seatDisplay.textContent = this.dataset.seat;
+
+    });
+
+});
+
+</script>
+
+{% endblock %}

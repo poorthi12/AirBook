@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Flight Details | SkyBook{% endblock %}
+
+{% block content %}
+
+<div class="flight-details-page">
+
+    <div class="details-container">
+
+        <a href="{{ url_for('search_flights') }}" class="back-btn">
+            ← Back to Flights
+        </a>
+
+        <div class="details-header">
+            <span>FLIGHT DETAILS</span>
+            <h1>{{ flight.airline }}</h1>
+            <p>{{ flight.flight_number }}</p>
+        </div>
+
+
+        <div class="route-card">
+
+            <div class="airport">
+
+                <strong>{{ flight.departure }}</strong>
+
+                <span>{{ flight.from_code }}</span>
+
+                <small>{{ flight["from"] }}</small>
+
+            </div>
+
+
+            <div class="route-middle">
+
+                <span>{{ flight.duration }}</span>
+
+                <div class="route-line">
+                    ───────── ✈ ─────────
+                </div>
+
+                <small>Non-stop</small>
+
+            </div>
+
+
+            <div class="airport">
+
+                <strong>{{ flight.arrival }}</strong>
+
+                <span>{{ flight.to_code }}</span>
+
+                <small>{{ flight["to"] }}</small>
+
+            </div>
+
+        </div>
+
+
+        <div class="info-grid">
+
+            <div class="info-card">
+                <span>FLIGHT</span>
+                <strong>{{ flight.flight_number }}</strong>
+            </div>
+
+            <div class="info-card">
+                <span>AIRLINE</span>
+                <strong>{{ flight.airline }}</strong>
+            </div>
+
+            <div class="info-card">
+                <span>DURATION</span>
+                <strong>{{ flight.duration }}</strong>
+            </div>
+
+            <div class="info-card">
+                <span>SEATS AVAILABLE</span>
+                <strong>{{ flight.available_seats }}</strong>
+            </div>
+
+        </div>
+
+
+        <div class="price-section">
+
+            <div>
+                <small>FARE</small>
+                <h2>₹{{ "{:,}".format(flight.price) }}</h2>
+            </div>
+
+            <form action="{{ url_for('seat_selection', flight_id=flight._id) }}" method="GET">
+
+                <button type="submit" class="continue-btn">
+                    CONTINUE TO SEAT SELECTION →
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

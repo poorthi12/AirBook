@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+
+{% block title %}SkyBook | Home{% endblock %}
+
+{% block content %}
+
+<div class="dashboard">
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+
+        <div class="brand">
+            ✈ <span>SKYBOOK</span>
+        </div>
+
+        <div class="nav-links">
+            <a href="/">Flights</a>
+            <a href="#">My Bookings</a>
+            <a href="#">History</a>
+        </div>
+
+        <div class="user-area">
+            <div class="user-icon">
+                {{ name[0] }}
+            </div>
+
+            <span>{{ name }}</span>
+
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                Logout
+            </a>
+        </div>
+
+    </nav>
+
+
+    <!-- HERO -->
+    <section class="hero">
+
+        <div class="hero-content">
+
+            <p class="welcome">
+                WELCOME BACK, {{ name.upper() }}
+            </p>
+
+            <h1>
+                Where will your<br>
+                <span>journey take you?</span>
+            </h1>
+            <p style="color:red; font-size:20px;">
+                TEST VERSION 123
+            </p>
+
+            <p class="hero-description">
+                Search thousands of flights and find the perfect
+                journey for your next adventure.
+            </p>
+
+        </div>
+
+
+        <!-- SEARCH CARD -->
+        <div class="search-card">
+
+            <div class="trip-options">
+
+                <label>
+                    <input type="radio"
+                           name="trip"
+                           value="oneway"
+                           checked>
+                    One Way
+                </label>
+
+                <label>
+                    <input type="radio"
+                           name="trip"
+                           value="roundtrip">
+                    Round Trip
+                </label>
+
+            </div>
+
+
+            <form action="{{ url_for('search_flights') }}" method="POST">
+
+                <div class="search-grid">
+
+                    <!-- FROM -->
+                    <div class="field">
+
+                        <label>FROM</label>
+
+                        <div class="input-box">
+
+                            <span class="field-icon">✈</span>
+
+                            <div>
+                                <small>Departure</small>
+
+                                <input
+                                    type="text"
+                                    name="from"
+                                    placeholder="City or airport"
+                                    required>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SWAP -->
+                    <button type="button"
+                            class="swap-btn">
+                        ⇄
+                    </button>
+
+
+                    <!-- TO -->
+                    <div class="field">
+
+                        <label>TO</label>
+
+                        <div class="input-box">
+
+                            <span class="field-icon">📍</span>
+
+                            <div>
+                                <small>Destination</small>
+
+                                <input
+                                    type="text"
+                                    name="to"
+                                    placeholder="City or airport"
+                                    required>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- DEPARTURE -->
+                    <div class="field">
+
+                        <label>DEPARTURE</label>
+
+                        <div class="input-box">
+
+                            <span class="field-icon">📅</span>
+
+                            <div>
+                                <small>Date</small>
+
+                                <input
+                                    type="date"
+                                    name="departure"
+                                    required>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- RETURN -->
+                    <div class="field return-field">
+
+                        <label>RETURN</label>
+
+                        <div class="input-box">
+
+                            <span class="field-icon">📅</span>
+
+                            <div>
+                                <small>Date</small>
+
+                                <input
+                                    type="date"
+                                    name="return_date">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PASSENGERS -->
+                    <div class="field">
+
+                        <label>PASSENGERS</label>
+
+                        <div class="input-box">
+
+                            <span class="field-icon">👤</span>
+
+                            <div>
+                                <small>Travellers</small>
+
+                                <select name="passengers">
+
+                                    <option value="1">
+                                        1 Passenger
+                                    </option>
+
+                                    <option value="2">
+                                        2 Passengers
+                                    </option>
+
+                                    <option value="3">
+                                        3 Passengers
+                                    </option>
+
+                                    <option value="4">
+                                        4 Passengers
+                                    </option>
+
+                                    <option value="5">
+                                        5 Passengers
+                                    </option>
+
+                                    <option value="6">
+                                        6 Passengers
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <button type="submit"
+                        class="search-btn">
+
+                    SEARCH FLIGHTS
+                    <span>→</span>
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </section>
+
+
+    <!-- QUICK ACTIONS -->
+    <section class="quick-section">
+
+        <h2>Manage Your Journey</h2>
+
+        <div class="quick-grid">
+
+            <div class="quick-card">
+
+                <div class="quick-icon">🎫</div>
+
+                <h3>My Bookings</h3>
+
+                <p>
+                    View and manage your upcoming flights.
+                </p>
+
+                <button>
+                    <a href="{{ url_for('booking_history') }}" class="history-btn">
+                        View Booking History
+                    </a>
+                </button>
+
+            </div>          
+
+
+            <div class="quick-card">
+
+                <div class="quick-icon">🕘</div>
+
+                <h3>Booking History</h3>
+
+                <p>
+                    Check your previous flight bookings.
+                </p>
+
+                <button>
+                    <a href="{{ url_for('booking_history') }}" class="history-btn">
+                        VIEW HISTORY →
+                    </a>
+                </button>
+
+            </div>
+
+
+            <div class="quick-card">
+
+                <div class="quick-icon">👤</div>
+
+                <h3>My Profile</h3>
+
+                <p>
+                    Manage your personal travel information.
+                </p>
+
+                <button>
+                    <a href="{{ url_for('profile') }}">VIEW PROFILE →</a>
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+{% endblock %}
