@@ -28,9 +28,11 @@ app.register_blueprint(admin_bp)
 app.config["MAIL_SERVER"] = MAIL_SERVER
 app.config["MAIL_PORT"] = MAIL_PORT
 app.config["MAIL_USE_TLS"] = MAIL_USE_TLS
+app.config["MAIL_USE_SSL"] = str(os.getenv("MAIL_USE_SSL", "False")).strip().lower() in {"1", "true", "yes", "on"}
 app.config["MAIL_USERNAME"] = MAIL_USERNAME
 app.config["MAIL_PASSWORD"] = MAIL_PASSWORD
 app.config["MAIL_DEFAULT_SENDER"] = MAIL_DEFAULT_SENDER
+app.config["MAIL_TIMEOUT"] = int(os.getenv("MAIL_TIMEOUT", "10"))
 
 mail.init_app(app)
 
@@ -229,53 +231,28 @@ def register():
             flash("An account with this email already exists.", "error")
             return redirect(url_for("register"))
 
-        # Generate 6-digit OTP
-        otp = str(random.randint(100000, 999999))
+        password_hash = generate_password_hash(password)
 
-        # Store OTP temporarily in session
-        session["registration_otp"] = otp
-        session["registration_data"] = {
+        user = {
             "name": name,
             "email": email,
             "phone": phone,
-            "password": password
+            "password": password_hash,
+            "verified": True
         }
 
-        # OTP expires after 5 minutes
-        session["otp_expiry"] = (
-            datetime.now() + timedelta(minutes=5)
-        ).timestamp()
+        users_collection.insert_one(user)
 
-        # Send OTP email if mail is configured; otherwise create account directly
-        from utils.email import send_otp_email
-
-        email_sent = send_otp_email(email, otp)
-
-        if not email_sent:
-            password_hash = generate_password_hash(password)
-
-            user = {
-                "name": name,
-                "email": email,
-                "phone": phone,
-                "password": password_hash,
-                "verified": True
-            }
-
-            users_collection.insert_one(user)
-
-            flash(
-                "Account created successfully. Email verification is disabled in this deployment.",
-                "success"
-            )
-            return redirect(url_for("login"))
+        session.pop("registration_otp", None)
+        session.pop("registration_data", None)
+        session.pop("otp_expiry", None)
 
         flash(
-            "Verification OTP sent to your email.",
+            "Account created successfully. You can now login.",
             "success"
         )
 
-        return redirect(url_for("verify"))
+        return redirect(url_for("login"))
 
     return render_template("auth/register.html")
 
