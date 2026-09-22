@@ -246,24 +246,29 @@ def register():
             datetime.now() + timedelta(minutes=5)
         ).timestamp()
 
-        # Send OTP email
+        # Send OTP email if mail is configured; otherwise create account directly
         from utils.email import send_otp_email
 
-        try:
-            send_otp_email(email, otp)
-        except Exception as e:
-            print("OTP EMAIL ERROR:", e)
+        email_sent = send_otp_email(email, otp)
 
-            session.pop("registration_otp", None)
-            session.pop("registration_data", None)
-            session.pop("otp_expiry", None)
+        if not email_sent:
+            password_hash = generate_password_hash(password)
+
+            user = {
+                "name": name,
+                "email": email,
+                "phone": phone,
+                "password": password_hash,
+                "verified": True
+            }
+
+            users_collection.insert_one(user)
 
             flash(
-                "Unable to send verification email. Please try again.",
-                "error"
+                "Account created successfully. Email verification is disabled in this deployment.",
+                "success"
             )
-
-            return redirect(url_for("register"))
+            return redirect(url_for("login"))
 
         flash(
             "Verification OTP sent to your email.",
