@@ -1,0 +1,774 @@
+/* ==========================================
+   FLIGHT RESULTS
+   ========================================== */
+
+.flight-results-section {
+    width: 100%;
+    display: block;
+    padding-top: 0;
+}
+
+.flight-results {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto 30px;
+}
+
+
+/* ==========================================
+   FLIGHT CARD
+   ========================================== */
+
+.flight-card {
+    display: grid;
+
+    grid-template-columns:
+        190px
+        1fr
+        150px
+        150px;
+
+    align-items: center;
+
+    gap: 30px;
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 24px 28px;
+
+    margin-bottom: 18px;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    border-radius: 18px;
+
+    background: rgba(255, 255, 255, 0.035);
+
+    transition: 0.25s ease;
+}
+
+.flight-card:hover {
+
+    transform: translateY(-2px);
+
+    border-color:
+        rgba(255, 255, 255, 0.14);
+}
+
+
+/* ==========================================
+   AIRLINE
+   ========================================== */
+
+.airline-info {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    min-width: 0;
+}
+
+.airline-logo {
+
+    width: 44px;
+    height: 44px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background:
+        rgba(255, 255, 255, 0.07);
+
+    font-size: 20px;
+}
+
+.airline-info h3 {
+
+    margin: 0 0 5px;
+
+    font-size: 14px;
+
+    white-space: nowrap;
+}
+
+.airline-info span {
+
+    color: #8e99a8;
+
+    font-size: 12px;
+}
+
+
+/* ==========================================
+   FLIGHT TIME
+   ========================================== */
+
+.flight-time {
+
+    display: grid;
+
+    grid-template-columns:
+        70px
+        1fr
+        70px;
+
+    align-items: center;
+
+    gap: 15px;
+
+    min-width: 0;
+}
+
+.flight-time > div:first-child,
+.flight-time > div:last-child {
+
+    display: flex;
+
+    flex-direction: column;
+}
+
+.flight-time > div:last-child {
+
+    text-align: right;
+}
+
+.flight-time strong {
+
+    font-size: 18px;
+
+    line-height: 1.2;
+}
+
+.flight-time span {
+
+    color: #8e99a8;
+
+    font-size: 11px;
+
+    margin-top: 4px;
+}
+
+
+/* ==========================================
+   DURATION
+   ========================================== */
+
+.duration {
+
+    text-align: center;
+
+    min-width: 0;
+}
+
+.duration > span {
+
+    display: block;
+
+    color: #9ca7b6;
+
+    font-size: 11px;
+
+    margin-bottom: 5px;
+}
+
+.flight-line {
+
+    color: #7e8a9a;
+
+    font-size: 13px;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+}
+
+
+/* ==========================================
+   PRICE
+   ========================================== */
+
+.flight-price {
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-end;
+
+    min-width: 0;
+}
+
+.flight-price small {
+
+    color: #7f8998;
+
+    font-size: 10px;
+
+    margin-bottom: 4px;
+}
+
+.flight-price strong {
+
+    font-size: 18px;
+
+    white-space: nowrap;
+}
+
+.flight-price span {
+
+    margin-top: 6px;
+
+    color: #7f8998;
+
+    font-size: 11px;
+
+    white-space: nowrap;
+}
+
+
+/* ==========================================
+   DATE + BUTTON
+   ========================================== */
+
+.flight-action {
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-end;
+
+    gap: 12px;
+}
+
+.flight-date {
+
+    text-align: right;
+}
+
+.flight-date small {
+
+    display: block;
+
+    color: #7f8998;
+
+    font-size: 9px;
+
+    letter-spacing: 1px;
+
+    margin-bottom: 4px;
+}
+
+.flight-date strong {
+
+    font-size: 12px;
+
+    white-space: nowrap;
+}
+
+
+/* ==========================================
+   SELECT BUTTON
+   ========================================== */
+
+.select-flight {
+
+    min-width: 110px;
+
+    padding: 10px 18px;
+
+    border: none;
+
+    border-radius: 9px;
+
+    cursor: pointer;
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.5px;
+
+    transition: 0.2s ease;
+}
+
+.select-flight:hover {
+
+    transform: translateY(-1px);
+}
+
+
+/* ==================================================
+   TOP RED FLIGHT NOTIFICATION
+   ================================================== */
+
+.flight-notification {
+
+    position: fixed;
+
+    top: 0;
+
+    left: 50%;
+
+    z-index: 999999;
+
+    width: 460px;
+
+    max-width: calc(100% - 30px);
+
+    box-sizing: border-box;
+
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 14px;
+
+    font-family: "Segoe UI", Arial, sans-serif;
+
+    padding: 17px 45px 17px 18px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #65151b,
+            #3d0d12
+        );
+
+    border-left:
+        4px solid #ff3948;
+
+    border-bottom:
+        1px solid rgba(255, 80, 90, 0.45);
+
+    border-right:
+        1px solid rgba(255, 80, 90, 0.25);
+
+    border-radius:
+        0 0 12px 12px;
+
+    box-shadow:
+        0 12px 35px rgba(0, 0, 0, 0.45),
+        0 0 25px rgba(255, 40, 55, 0.18);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transform:
+        translate(-50%, -110%);
+
+    transition:
+        transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.35s ease,
+        visibility 0.35s ease;
+}
+
+
+/* ==========================================
+   NOTIFICATION VISIBLE
+   ========================================== */
+
+.flight-notification.notification-visible {
+
+    opacity: 1;
+
+    visibility: visible;
+
+    transform:
+        translate(-50%, 0);
+}
+
+
+/* ==========================================
+   NOTIFICATION ICON
+   ========================================== */
+
+.flight-notification-icon {
+
+    width: 31px;
+
+    height: 31px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #ed3342;
+
+    color: #ffffff;
+
+    font-size: 15px;
+
+    font-weight: 900;
+
+    box-shadow:
+        0 0 14px rgba(237, 51, 66, 0.45);
+}
+
+
+/* ==========================================
+   NOTIFICATION CONTENT
+   ========================================== */
+
+.flight-notification-content {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 4px;
+
+    min-width: 0;
+}
+
+.flight-notification-title {
+
+    color: #ff6671;
+
+    font-size: 11px;
+
+    font-weight: 900;
+
+    letter-spacing: 1.2px;
+
+    font-family: inherit;
+}
+
+.flight-notification-message {
+
+    color: #f6d5d8;
+
+    font-size: 11px;
+
+    line-height: 1.5;
+
+    font-family: inherit;
+}
+
+.flight-notification-message strong {
+
+    color: #ffffff;
+
+    font-weight: 700;
+}
+
+.flight-notification-sub {
+
+    color: #d38a90;
+
+    font-size: 10px;
+
+    margin-top: 2px;
+}
+
+
+/* ==========================================
+   CLOSE BUTTON
+   ========================================== */
+
+.flight-notification-close {
+
+    position: absolute;
+
+    top: 10px;
+
+    right: 12px;
+
+    width: 25px;
+
+    height: 25px;
+
+    border: none;
+
+    background: transparent;
+
+    color: #e89aa0;
+
+    font-size: 22px;
+
+    line-height: 20px;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.flight-notification-close:hover {
+
+    color: #ffffff;
+
+    transform: scale(1.1);
+}
+
+
+/* ==========================================
+   AVAILABLE FLIGHTS TITLE
+   ========================================== */
+
+.available-flights-wrapper {
+
+    width: 100%;
+
+    display: block;
+}
+
+.available-flights-title {
+
+    width: 90%;
+
+    max-width: 1200px;
+
+    margin: 0 auto 25px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    color: #f4f6f8;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    letter-spacing: 1.5px;
+}
+
+.available-flights-title small {
+
+    color: #7f8a99;
+
+    font-size: 11px;
+
+    font-weight: 400;
+
+    letter-spacing: 0;
+}
+
+
+/* ==========================================
+   NO FLIGHTS
+   ========================================== */
+
+.no-flights {
+
+    text-align: center;
+
+    padding: 60px 20px;
+}
+
+.no-flights h2 {
+
+    margin-bottom: 10px;
+}
+
+.no-flights p {
+
+    color: #8e99a8;
+
+    margin-bottom: 20px;
+}
+
+.no-flights a {
+
+    display: inline-block;
+
+    padding: 10px 18px;
+
+    border-radius: 9px;
+
+    text-decoration: none;
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    background:
+        rgba(255, 255, 255, 0.08);
+
+    color: #f4f6f8;
+
+    transition: 0.2s ease;
+}
+
+.no-flights a:hover {
+
+    background:
+        rgba(255, 255, 255, 0.14);
+}
+
+
+/* ==========================================
+   RESPONSIVE - TABLET
+   ========================================== */
+
+@media (max-width: 950px) {
+
+    .flight-card {
+
+        grid-template-columns:
+            170px
+            1fr
+            130px;
+
+        gap: 20px;
+    }
+
+    .flight-action {
+
+        grid-column: 1 / -1;
+
+        flex-direction: row;
+
+        justify-content: space-between;
+
+        align-items: center;
+
+        padding-top: 15px;
+
+        border-top:
+            1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .flight-date {
+
+        text-align: left;
+    }
+}
+
+
+/* ==========================================
+   RESPONSIVE - MOBILE
+   ========================================== */
+
+@media (max-width: 650px) {
+
+    .flight-results-section {
+
+        padding-top: 0;
+    }
+
+    .flight-results {
+
+        margin-bottom: 30px;
+    }
+
+    .flight-card {
+
+        grid-template-columns: 1fr;
+
+        gap: 20px;
+
+        padding: 20px;
+    }
+
+    .airline-info {
+
+        justify-content: flex-start;
+    }
+
+    .flight-time {
+
+        grid-template-columns:
+            60px
+            1fr
+            60px;
+    }
+
+    .flight-price {
+
+        align-items: flex-start;
+    }
+
+    .flight-action {
+
+        grid-column: auto;
+
+        flex-direction: row;
+
+        justify-content: space-between;
+
+        width: 100%;
+    }
+
+
+    /* ======================================
+       TOP NOTIFICATION - MOBILE
+       ====================================== */
+
+    .flight-notification {
+
+        top: 0;
+
+        width: calc(100% - 20px);
+
+        max-width: none;
+
+        padding: 15px 42px 15px 14px;
+
+        border-radius:
+            0 0 10px 10px;
+    }
+
+    .flight-notification-icon {
+
+        width: 28px;
+
+        height: 28px;
+
+        font-size: 13px;
+    }
+
+    .flight-notification-title {
+
+        font-size: 9px;
+    }
+
+    .flight-notification-message {
+
+        font-size: 10px;
+    }
+
+    .flight-notification-sub {
+
+        font-size: 9px;
+    }
+
+
+    /* ======================================
+       AVAILABLE FLIGHTS TITLE - MOBILE
+       ====================================== */
+
+    .available-flights-title {
+
+        width: calc(100% - 30px);
+
+        margin: 0 15px 20px;
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 6px;
+    }
+
+}

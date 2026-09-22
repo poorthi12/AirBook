@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session,send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, jsonify
 from database.db import test_connection, users_collection, flights_collection,bookings_collection
 from werkzeug.security import generate_password_hash, check_password_hash   
 from bson.objectid import ObjectId
@@ -34,16 +34,120 @@ app.config["MAIL_DEFAULT_SENDER"] = MAIL_DEFAULT_SENDER
 mail.init_app(app)
 
 app.secret_key = SECRET_KEY
+@app.route("/api/upcoming-flights")
+def upcoming_flights():
+
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+    two_months_end = (datetime.now() + timedelta(days=60)).strftime("%Y-%m-%d")
+
+    flights = list(
+        flights_collection.find({
+            "flight_date": {
+                "$gte": today,
+                "$lte": two_months_end
+            }
+        }).sort("flight_date", 1).sort("departure", 1)
+    )
+
+    today_flights = []
+    tomorrow_flights = []
+    next_two_months = []
+
+    for flight in flights:
+        flight_copy = {
+            "flight_number": flight.get("flight_number"),
+            "airline": flight.get("airline"),
+            "from": flight.get("from"),
+            "to": flight.get("to"),
+            "from_code": flight.get("from_code"),
+            "to_code": flight.get("to_code"),
+            "flight_date": flight.get("flight_date"),
+            "departure": flight.get("departure"),
+            "arrival": flight.get("arrival"),
+            "duration": flight.get("duration"),
+            "price": flight.get("price"),
+            "available_seats": flight.get("available_seats")
+        }
+
+        if flight.get("flight_date") == today:
+            today_flights.append(flight_copy)
+        elif flight.get("flight_date") == tomorrow:
+            tomorrow_flights.append(flight_copy)
+
+        if flight.get("flight_date") >= today:
+            next_two_months.append(flight_copy)
+
+    return jsonify({
+        "today": today_flights[:4],
+        "tomorrow": tomorrow_flights[:4],
+        "next_two_months": next_two_months[:200],
+        "generated_at": datetime.now().isoformat()
+    })
+
+
 @app.route("/")
 def home():
 
     if "user_id" not in session:
         return redirect(url_for("login"))
 
+    city_names = sorted(set(
+        flights_collection.distinct("from") +
+        flights_collection.distinct("to")
+    ))
+
     return render_template(
         "home/home.html",
         name=session.get("user_name"),
-        email=session.get("user_email")
+        email=session.get("user_email"),
+        city_names=city_names
+    )
+
+@app.route("/all-upcoming-flights")
+def all_upcoming_flights():
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    start_date = datetime.now().strftime("%Y-%m-%d")
+    end_date = (datetime.now() + timedelta(days=60)).strftime("%Y-%m-%d")
+
+    flights = list(
+        flights_collection.find({
+            "flight_date": {
+                "$gte": start_date,
+                "$lte": end_date
+            }
+        }).sort("flight_date", 1).sort("departure", 1)
+    )
+
+    grouped_flights = {}
+
+    for flight in flights:
+        flight_date = flight.get("flight_date")
+        grouped_flights.setdefault(flight_date, []).append({
+            "flight_number": flight.get("flight_number"),
+            "airline": flight.get("airline"),
+            "from": flight.get("from"),
+            "to": flight.get("to"),
+            "from_code": flight.get("from_code"),
+            "to_code": flight.get("to_code"),
+            "flight_date": flight_date,
+            "departure": flight.get("departure"),
+            "arrival": flight.get("arrival"),
+            "duration": flight.get("duration"),
+            "price": flight.get("price"),
+            "available_seats": flight.get("available_seats")
+        })
+
+    return render_template(
+        "home/upcoming_flights.html",
+        name=session.get("user_name"),
+        grouped_flights=sorted(grouped_flights.items())
     )
 
 @app.route("/login", methods=["GET", "POST"])
@@ -252,9 +356,9 @@ def search_flights():
 
     if request.method == "POST":
 
-        from_city = request.form.get("from", "")
-        to_city = request.form.get("to", "")
-        departure = request.form.get("departure", "")
+        from_city = request.form.get("from", "").strip()
+        to_city = request.form.get("to", "").strip()
+        departure = request.form.get("departure", "").strip()
         passengers = request.form.get("passengers", "1")
 
         print("FROM:", from_city)
@@ -262,7 +366,11 @@ def search_flights():
         print("DATE:", departure)
         print("PASSENGERS:", passengers)
 
-        flights = list(
+        # --------------------------------
+        # 1. SEARCH EXACT DATE
+        # --------------------------------
+
+        route_flights = list(
             flights_collection.find({
                 "from": {
                     "$regex": f"^{from_city}$",
@@ -271,12 +379,65 @@ def search_flights():
                 "to": {
                     "$regex": f"^{to_city}$",
                     "$options": "i"
-                },
-                "flight_date": departure
-            })
+                }
+            }).sort("flight_date", 1).sort("departure", 1)
         )
+
+        selected_date = None
+
+        try:
+            selected_date = datetime.strptime(departure, "%Y-%m-%d").date()
+        except ValueError:
+            selected_date = None
+
+        flights = []
+
+        for flight in route_flights:
+            flight_date = flight.get("flight_date")
+
+            if flight_date == departure:
+                flights.append(flight)
+
         print("SEARCH DATE:", departure)
         print("FLIGHTS FOUND:", len(flights))
+
+        # --------------------------------
+        # 2. IF NO FLIGHT, SEARCH OTHER DATES
+        # --------------------------------
+
+        alternative_dates = False
+
+        if len(flights) == 0:
+
+            print("NO FLIGHTS ON SELECTED DATE")
+            print("SEARCHING ALTERNATIVE DATES...")
+
+            alternative_flights = []
+
+            for flight in route_flights:
+                flight_date = flight.get("flight_date")
+
+                try:
+                    if (
+                        selected_date is not None and
+                        flight_date and
+                        datetime.strptime(flight_date, "%Y-%m-%d").date() > selected_date
+                    ):
+                        alternative_flights.append(flight)
+                except ValueError:
+                    continue
+
+            alternative_flights = alternative_flights[:10]
+
+            if alternative_flights:
+                flights = alternative_flights
+                alternative_dates = True
+
+            print("ALTERNATIVE FLIGHTS FOUND:", len(alternative_flights))
+
+        # --------------------------------
+        # 3. PRINT RESULTS
+        # --------------------------------
 
         for flight in flights:
             print(
@@ -289,15 +450,14 @@ def search_flights():
                 flight["to"]
             )
 
-        print("FLIGHTS FOUND:", len(flights))
-
         return render_template(
             "flights/results.html",
             flights=flights,
             from_city=from_city,
             to_city=to_city,
             departure=departure,
-            passengers=passengers
+            passengers=passengers,
+            alternative_dates=alternative_dates
         )
 
     return redirect(url_for("home"))
@@ -1452,8 +1612,13 @@ def cancel_booking(booking_id):
 
     return redirect(url_for("booking_history"))
 
+
 @app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
+
+    print("FORGOT PASSWORD ROUTE HIT")
+    print("METHOD:", request.method)
+    print("SESSION:", dict(session))
 
     if request.method == "POST":
 

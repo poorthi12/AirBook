@@ -6,13 +6,63 @@
 
 <div class="results-page">
 
+    <!-- ==========================================
+         TOP NOTIFICATION
+         ========================================== -->
+
+    {% if alternative_dates %}
+
+    <div id="flightNotification" class="flight-notification">
+
+        <div class="flight-notification-icon">
+            !
+        </div>
+
+        <div class="flight-notification-content">
+
+            <div class="flight-notification-title">
+                TRAVEL DATE UNAVAILABLE
+            </div>
+
+            <div class="flight-notification-message">
+                No flights available for
+                {{ from_city }} → {{ to_city }}
+                on
+                {{ departure }}
+            </div>
+
+            <div class="flight-notification-sub">
+                Showing the next available flights.
+            </div>
+
+        </div>
+
+        <button
+            type="button"
+            class="flight-notification-close"
+            onclick="closeFlightNotification()"
+        >
+            ×
+        </button>
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- ==========================================
+         RESULTS HEADER
+         ========================================== -->
+
     <div class="results-header">
 
         <a href="{{ url_for('home') }}" class="back-btn">
             ← Back
         </a>
 
-        <h1>Available Flights</h1>
+        <h1>
+            Available Flights
+        </h1>
 
         <p>
             {{ from_city }} → {{ to_city }}
@@ -21,73 +71,154 @@
     </div>
 
 
-    <div class="flight-results">
+    <!-- ==========================================
+         AVAILABLE FLIGHTS
+         ========================================== -->
 
-        {% if flights %}
+    <div class="available-flights-wrapper">
 
-            {% for flight in flights %}
+        <div class="available-flights-title">
 
-            <div class="flight-card">
+            <span>
+                AVAILABLE FLIGHTS
+            </span>
 
-                <div class="airline-info">
+            {% if alternative_dates %}
 
-                    <div class="airline-logo">
-                        ✈
-                    </div>
+            <small>
+                Next available dates
+            </small>
 
-                    <div>
-                        <h3>{{ flight.airline }}</h3>
-                        <span>{{ flight.flight_number }}</span>
-                    </div>
+            {% endif %}
 
-                </div>
+        </div>
 
 
-                <div class="flight-time">
+        <!-- ==========================================
+             FLIGHT RESULTS
+             ========================================== -->
 
-                    <div>
-                        <strong>{{ flight.departure }}</strong>
-                        <span>{{ flight.from_code }}</span>
-                    </div>
+        <div class="flight-results">
 
-                    <div class="duration">
+            {% if flights %}
 
-                        <span>{{ flight.duration }}</span>
+                {% for flight in flights %}
 
-                        <div class="flight-line">
-                            ─────────✈
+                <div class="flight-card">
+
+                    <!-- AIRLINE -->
+
+                    <div class="airline-info">
+
+                        <div class="airline-logo">
+                            ✈
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                {{ flight.airline }}
+                            </h3>
+
+                            <span>
+                                {{ flight.flight_number }}
+                            </span>
+
                         </div>
 
                     </div>
 
-                    <div>
-                        <strong>{{ flight.arrival }}</strong>
-                        <span>{{ flight.to_code }}</span>
+
+                    <!-- FLIGHT TIME -->
+
+                    <div class="flight-time">
+
+                        <div>
+
+                            <strong>
+                                {{ flight.departure }}
+                            </strong>
+
+                            <span>
+                                {{ flight.from_code }}
+                            </span>
+
+                        </div>
+
+
+                        <div class="duration">
+
+                            <span>
+                                {{ flight.duration }}
+                            </span>
+
+                            <div class="flight-line">
+                                ─────────✈
+                            </div>
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                {{ flight.arrival }}
+                            </strong>
+
+                            <span>
+                                {{ flight.to_code }}
+                            </span>
+
+                        </div>
+
                     </div>
 
-                </div>
+
+                    <!-- PRICE -->
+
+                    <div class="flight-price">
+
+                        <small>
+                            From
+                        </small>
+
+                        <strong>
+                            ₹{{ "{:,}".format(flight.price) }}
+                        </strong>
+
+                        <span>
+                            {{ flight.available_seats }} seats left
+                        </span>
+
+                    </div>
 
 
-                <div class="flight-price">
+                    <!-- DATE + SELECT -->
 
-                    <small>From</small>
+                    <div class="flight-action">
 
-                    <strong>
-                        ₹{{ "{:,}".format(flight.price) }}
-                    </strong>
+                        <div class="flight-date">
 
-                    <span>
-                        {{ flight.available_seats }} seats left
-                    </span>
+                            <small>
+                                FLIGHT DATE
+                            </small>
 
-                </div>
+                            <strong>
+                                {{ flight.flight_date }}
+                            </strong>
+
+                        </div>
 
 
-                    <div>
+                        <form
+                            action="{{ url_for('flight_details', flight_id=flight._id) }}"
+                            method="GET"
+                        >
 
-                        <form action="{{ url_for('flight_details', flight_id=flight._id) }}" method="GET">
-
-                            <button type="submit" class="select-flight">
+                            <button
+                                type="submit"
+                                class="select-flight"
+                            >
                                 SELECT
                             </button>
 
@@ -95,28 +226,37 @@
 
                     </div>
 
-            </div>
+                </div>
 
-            {% endfor %}
+                {% endfor %}
 
-        {% else %}
 
-            <div class="no-flights">
+            {% else %}
 
-                <h2>No flights found</h2>
+                <!-- ==========================================
+                     NO FLIGHTS
+                     ========================================== -->
 
-                <p>
-                    We couldn't find flights for
-                    {{ from_city }} → {{ to_city }}.
-                </p>
+                <div class="no-flights">
 
-                <a href="{{ url_for('home') }}">
-                    Search Again
-                </a>
+                    <h2>
+                        No flights found
+                    </h2>
 
-            </div>
+                    <p>
+                        We couldn't find any available flights for
+                        {{ from_city }} → {{ to_city }}.
+                    </p>
 
-        {% endif %}
+                    <a href="{{ url_for('home') }}">
+                        Search Again
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </div>
 
     </div>
 

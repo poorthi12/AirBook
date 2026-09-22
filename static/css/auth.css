@@ -173,3 +173,22 @@
 .admin-login-link:hover {
     color: #ffffff;
 }   
+
+.forgot-password {
+    display: inline-block;
+
+    margin-bottom: 14px;
+
+    color: #7f8896;
+    text-decoration: none;
+
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+
+    transition: 0.2s ease;
+}
+
+.forgot-password:hover {
+    color: #d7dce3;
+}

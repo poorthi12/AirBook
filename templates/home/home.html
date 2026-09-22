@@ -10,7 +10,7 @@
     <nav class="navbar">
 
         <div class="brand">
-            ✈ <span>SKYBOOK</span>
+            ✈ <span>AirBook</span>
         </div>
 
 
@@ -90,11 +90,21 @@
                             <div>
                                 <small>Departure</small>
 
-                                <input
-                                    type="text"
-                                    name="from"
-                                    placeholder="City or airport"
-                                    required>
+                                <div class="custom-select" data-name="from">
+                                    <button type="button" class="custom-select-trigger" aria-expanded="false">
+                                        <span class="custom-select-value">Select city</span>
+                                        <span class="custom-select-arrow">▾</span>
+                                    </button>
+
+                                    <ul class="custom-select-menu">
+                                        <li class="custom-option" data-value="">Select city</li>
+                                        {% for city in city_names %}
+                                            <li class="custom-option" data-value="{{ city }}">{{ city }}</li>
+                                        {% endfor %}
+                                    </ul>
+
+                                    <input type="hidden" name="from" value="">
+                                </div>
                             </div>
 
                         </div>
@@ -121,11 +131,21 @@
                             <div>
                                 <small>Destination</small>
 
-                                <input
-                                    type="text"
-                                    name="to"
-                                    placeholder="City or airport"
-                                    required>
+                                <div class="custom-select" data-name="to">
+                                    <button type="button" class="custom-select-trigger" aria-expanded="false">
+                                        <span class="custom-select-value">Select city</span>
+                                        <span class="custom-select-arrow">▾</span>
+                                    </button>
+
+                                    <ul class="custom-select-menu">
+                                        <li class="custom-option" data-value="">Select city</li>
+                                        {% for city in city_names %}
+                                            <li class="custom-option" data-value="{{ city }}">{{ city }}</li>
+                                        {% endfor %}
+                                    </ul>
+
+                                    <input type="hidden" name="to" value="">
+                                </div>
                             </div>
 
                         </div>
@@ -140,13 +160,15 @@
 
                         <div class="input-box">
 
-                            <span class="field-icon">📅</span>
+                            <span class="field-icon date-icon">📅</span>
 
                             <div>
                                 <small>Date</small>
 
                                 <input
                                     type="date"
+                                    id="departureDate"
+                                    class="styled-date"
                                     name="departure"
                                     required>
                             </div>
@@ -163,13 +185,15 @@
 
                         <div class="input-box">
 
-                            <span class="field-icon">📅</span>
+                            <span class="field-icon date-icon">📅</span>
 
                             <div>
                                 <small>Date</small>
 
                                 <input
                                     type="date"
+                                    id="returnDate"
+                                    class="styled-date"
                                     name="return_date">
                             </div>
 
@@ -190,33 +214,23 @@
                             <div>
                                 <small>Travellers</small>
 
-                                <select name="passengers">
+                                <div class="custom-select passenger-select" data-name="passengers">
+                                    <button type="button" class="custom-select-trigger is-selected" aria-expanded="false">
+                                        <span class="custom-select-value">1 Passenger</span>
+                                        <span class="custom-select-arrow">▾</span>
+                                    </button>
 
-                                    <option value="1">
-                                        1 Passenger
-                                    </option>
+                                    <ul class="custom-select-menu">
+                                        <li class="custom-option is-selected" data-value="1">1 Passenger</li>
+                                        <li class="custom-option" data-value="2">2 Passengers</li>
+                                        <li class="custom-option" data-value="3">3 Passengers</li>
+                                        <li class="custom-option" data-value="4">4 Passengers</li>
+                                        <li class="custom-option" data-value="5">5 Passengers</li>
+                                        <li class="custom-option" data-value="6">6 Passengers</li>
+                                    </ul>
 
-                                    <option value="2">
-                                        2 Passengers
-                                    </option>
-
-                                    <option value="3">
-                                        3 Passengers
-                                    </option>
-
-                                    <option value="4">
-                                        4 Passengers
-                                    </option>
-
-                                    <option value="5">
-                                        5 Passengers
-                                    </option>
-
-                                    <option value="6">
-                                        6 Passengers
-                                    </option>
-
-                                </select>
+                                    <input type="hidden" name="passengers" value="1">
+                                </div>
 
                             </div>
 
@@ -240,6 +254,40 @@
         </div>
 
     </section>
+
+
+    <!-- LIVE UPCOMING FLIGHTS -->
+    <section class="upcoming-flights-section">
+
+        <div class="upcoming-header">
+            <div>
+                <p class="upcoming-label">LIVE DEPARTURES</p>
+                <h2>Today & Next Day Flights</h2>
+            </div>
+            <span class="live-dot">● Live</span>
+        </div>
+
+        <div class="upcoming-grid" id="upcomingFlights">
+            <div class="upcoming-column loading">
+                <h3>Today</h3>
+                <p>Loading flights...</p>
+            </div>
+
+            <div class="upcoming-column loading">
+                <h3>Tomorrow</h3>
+                <p>Loading flights...</p>
+            </div>
+        </div>
+
+    </section>
+
+
+    <div class="all-upcoming-actions home-view-all-row">
+        <span class="live-dot">● 60-Day View</span>
+        <a href="{{ url_for('all_upcoming_flights') }}" class="view-all-btn">
+            View all
+        </a>
+    </div>
 
 
     <!-- QUICK ACTIONS -->

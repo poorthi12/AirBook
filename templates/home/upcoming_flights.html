@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}SkyBook | Upcoming Flights{% endblock %}
+
+{% block content %}
+
+<div class="dashboard">
+
+    <nav class="navbar">
+
+        <div class="brand">
+            ✈ <span>AirBook</span>
+        </div>
+
+        <div class="user-area">
+            <div class="user-icon">
+                {{ name[0] }}
+            </div>
+
+            <span>{{ name }}</span>
+
+            <a href="{{ url_for('home') }}" class="logout-btn">
+                Back Home
+            </a>
+        </div>
+
+    </nav>
+
+    <section class="all-upcoming-page-section">
+
+        <div class="upcoming-header all-upcoming-header">
+            <div>
+                <p class="upcoming-label">UPCOMING SCHEDULE</p>
+                <h2>Flights for the Next Two Months</h2>
+            </div>
+            <span class="live-dot">● 60-Day View</span>
+        </div>
+
+        <div class="all-upcoming-list full-page-list">
+            {% if grouped_flights %}
+                {% for flight_date, flights in grouped_flights %}
+                    <div class="all-upcoming-date-group">
+                        <div class="all-upcoming-date-heading">
+                            {{ flight_date }}
+                        </div>
+
+                        <div class="all-upcoming-date-list">
+                            {% for flight in flights %}
+                                <div class="all-upcoming-row">
+                                    <div class="all-upcoming-left">
+                                        <strong>{{ flight.from_code or flight.from }}</strong>
+                                        <span>→</span>
+                                        <strong>{{ flight.to_code or flight.to }}</strong>
+                                    </div>
+
+                                    <div class="all-upcoming-middle">
+                                        <span>{{ flight.departure }} - {{ flight.arrival }}</span>
+                                        <small>{{ flight.airline or 'SkyBook Airways' }}</small>
+                                    </div>
+
+                                    <div class="all-upcoming-right">
+                                        <span>{{ flight.flight_number or 'SK' }}</span>
+                                        <strong>₹{{ flight.price|int|default(0) }}</strong>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="all-upcoming-empty">No flights are available in the next two months.</div>
+            {% endif %}
+        </div>
+
+    </section>
+
+</div>
+
+{% endblock %}

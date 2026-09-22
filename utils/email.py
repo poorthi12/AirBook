@@ -1,7 +1,4 @@
-import os
-
 from flask_mail import Mail, Message
-
 
 mail = Mail()
 
@@ -9,23 +6,25 @@ mail = Mail()
 def send_otp_email(recipient, otp):
 
     msg = Message(
-        subject="AirBook - Email Verification OTP",
+        subject="AirBook - Email Verification Code",
         recipients=[recipient]
     )
 
     msg.body = f"""
 Hello,
 
-Your SkyBook verification OTP is:
+Thank you for creating your AirBook account.
+
+Your email verification code is:
 
 {otp}
 
-This OTP is valid for 5 minutes.
+This code is valid for 5 minutes.
 
-If you did not create a SkyBook account, you can safely ignore this email.
+If you did not create a AirBook account, you can safely ignore this email.
 
 Regards,
-SkyBook Team
+AirBook Team
 """
 
     mail.send(msg)
@@ -34,25 +33,25 @@ SkyBook Team
 def send_reset_otp_email(recipient, otp):
 
     msg = Message(
-        subject="AirBook - Password Reset OTP",
+        subject="AirBook - Password Reset Code",
         recipients=[recipient]
     )
 
     msg.body = f"""
 Hello,
 
-We received a request to reset your SkyBook password.
+We received a request to reset your AirBook password.
 
-Your password reset OTP is:
+Your password reset code is:
 
 {otp}
 
-This OTP is valid for 5 minutes.
+This code is valid for 5 minutes.
 
 If you did not request a password reset, you can safely ignore this email.
 
 Regards,
-SkyBook Team
+AirBook Team
 """
 
     mail.send(msg)
