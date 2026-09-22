@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Bookings | SkyBook{% endblock %}
+
+{% block content %}
+
+<div class="admin-page">
+
+    <div class="admin-header">
+
+        <div>
+            <span class="admin-label">SKYBOOK // BOOKING CONTROL</span>
+            <h1>Manage Bookings</h1>
+            <p>Monitor all passenger reservations.</p>
+        </div>
+
+    </div>
+
+
+    <div class="booking-admin-table">
+
+        <div class="booking-table-header">
+
+            <span>PNR</span>
+            <span>PASSENGER</span>
+            <span>FLIGHT</span>
+            <span>ROUTE</span>
+            <span>DATE</span>
+            <span>SEAT</span>
+            <span>AMOUNT</span>
+            <span>STATUS</span>
+            <span>ACTIONS</span>
+
+        </div>
+
+
+        {% for booking in bookings %}
+
+        <div class="booking-table-row">
+
+            <div>
+                <strong>{{ booking.pnr }}</strong>
+            </div>
+
+
+            <div>
+
+                <strong>
+                    {{ booking.passenger.name }}
+                </strong>
+
+                <small>
+                    {{ booking.passenger.email }}
+                </small>
+
+            </div>
+
+
+            <div>
+
+                <strong>
+                    {{ booking.flight_number }}
+                </strong>
+
+                <small>
+                    {{ booking.airline }}
+                </small>
+
+            </div>
+
+
+            <div>
+
+                <strong>
+                    {{ booking.from_code }}
+                    →
+                    {{ booking.to_code }}
+                </strong>
+
+            </div>
+
+
+            <div>
+                {{ booking.flight_date }}
+            </div>
+
+
+            <div>
+                {{ booking.seat }}
+            </div>
+
+
+            <div>
+                ₹{{ "{:,}".format(booking.total) }}
+            </div>
+
+
+            <div>
+
+                <span class="
+                    booking-status
+                    {% if booking.booking_status == 'CONFIRMED' %}
+                        confirmed
+                    {% elif booking.booking_status == 'CANCELLED' %}
+                        cancelled
+                    {% else %}
+                        pending
+                    {% endif %}
+                ">
+                    {{ booking.booking_status }}
+                </span>
+
+            </div>
+
+
+            <!-- ACTIONS -->
+
+            <div class="admin-booking-actions">
+
+            <a
+                href="{{ url_for('admin.view_booking', booking_id=booking._id) }}"
+                class="admin-view-btn"
+            >
+                VIEW
+            </a>
+
+                {% if booking.booking_status == "CONFIRMED" %}
+
+                <form
+                    action="{{ url_for('admin.cancel_booking_admin', booking_id=booking._id) }}"
+                    method="POST"
+                    onsubmit="return confirm('Cancel this booking?');"
+                >
+
+                    <button
+                        type="submit"
+                        class="admin-cancel-btn"
+                    >
+                        CANCEL
+                    </button>
+
+                </form>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        {% else %}
+
+        <div class="no-bookings">
+            No bookings available.
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}  

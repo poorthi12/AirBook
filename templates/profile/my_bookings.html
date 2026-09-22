@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}My Bookings | SkyBook{% endblock %}
+
+{% block content %}
+
+<div class="profile-page">
+
+    <!-- HEADER -->
+    <div class="profile-header">
+
+        <div>
+            <span class="profile-label">SKYBOOK // TRAVEL</span>
+
+            <h1>My Bookings</h1>
+
+            <p>
+                Manage your upcoming flights and reservations.
+            </p>
+        </div>
+
+        <a href="{{ url_for('home') }}" class="profile-back-btn">
+            ← BACK TO HOME
+        </a>
+
+    </div>
+
+
+    <!-- UPCOMING BOOKINGS -->
+
+    {% if bookings %}
+
+        <div class="booking-history-section">
+
+            <div class="booking-section-title">
+                <span>UPCOMING FLIGHTS</span>
+            </div>
+
+
+            <div class="booking-list">
+
+                {% for booking in bookings %}
+
+                <div class="booking-card">
+
+                    <!-- TOP -->
+
+                    <div class="booking-card-top">
+
+                        <div>
+                            <span class="booking-label">
+                                BOOKING REFERENCE
+                            </span>
+
+                            <h2>
+                                {{ booking.pnr }}
+                            </h2>
+                        </div>
+
+                        <span class="booking-status confirmed">
+                            {{ booking.booking_status }}
+                        </span>
+
+                    </div>
+
+
+                    <!-- FLIGHT -->
+
+                    <div class="booking-flight">
+
+                        <div class="booking-location">
+
+                            <span>
+                                {{ booking.from_code }}
+                            </span>
+
+                            <small>
+                                {{ booking.from }}
+                            </small>
+
+                            <strong>
+                                {{ booking.departure }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="booking-arrow">
+                            ✈
+                        </div>
+
+
+                        <div class="booking-location">
+
+                            <span>
+                                {{ booking.to_code }}
+                            </span>
+
+                            <small>
+                                {{ booking.to }}
+                            </small>
+
+                            <strong>
+                                {{ booking.arrival }}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- DETAILS -->
+
+                    <div class="booking-details">
+
+                        <div>
+                            <span>FLIGHT</span>
+                            <strong>
+                                {{ booking.flight_number }}
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>DATE</span>
+                            <strong>
+                                {{ booking.formatted_date }}
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>PASSENGER</span>
+                            <strong>
+                                {{ booking.passenger.name }}
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>SEAT</span>
+                            <strong>
+                                {{ booking.seat }}
+                            </strong>
+                        </div>
+
+                    </div>
+
+
+                    <!-- ACTIONS -->
+
+                    <div class="booking-card-actions">
+
+                        <a
+                            href="{{ url_for('booking_confirmation') }}"
+                            class="booking-view-btn"
+                        >
+                            VIEW TICKET →
+                        </a>
+
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    {% else %}
+
+        <!-- EMPTY STATE -->
+
+        <div class="empty-bookings">
+
+            <div class="empty-icon">
+                ✈
+            </div>
+
+            <h2>No Upcoming Bookings</h2>
+
+            <p>
+                You don't have any upcoming flights.
+                Start planning your next journey.
+            </p>
+
+            <a href="{{ url_for('home') }}" class="booking-search-btn">
+                SEARCH FLIGHTS →
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

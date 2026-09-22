@@ -13,11 +13,6 @@
             ✈ <span>SKYBOOK</span>
         </div>
 
-        <div class="nav-links">
-            <a href="/">Flights</a>
-            <a href="#">My Bookings</a>
-            <a href="#">History</a>
-        </div>
 
         <div class="user-area">
             <div class="user-icon">
@@ -47,9 +42,6 @@
                 Where will your<br>
                 <span>journey take you?</span>
             </h1>
-            <p style="color:red; font-size:20px;">
-                TEST VERSION 123
-            </p>
 
             <p class="hero-description">
                 Search thousands of flights and find the perfect
@@ -267,11 +259,11 @@
                     View and manage your upcoming flights.
                 </p>
 
-                <button>
+                
                     <a href="{{ url_for('booking_history') }}" class="history-btn">
-                        View Booking History
+                        VIEW HISTORY →
                     </a>
-                </button>
+                
 
             </div>          
 
@@ -280,17 +272,17 @@
 
                 <div class="quick-icon">🕘</div>
 
-                <h3>Booking History</h3>
+                <h3>Booking History </h3>
 
                 <p>
                     Check your previous flight bookings.
                 </p>
 
-                <button>
-                    <a href="{{ url_for('booking_history') }}" class="history-btn">
+                
+                    <a href="{{ url_for('my_bookings') }}" class="history-btn">
                         VIEW HISTORY →
                     </a>
-                </button>
+                
 
             </div>
 
@@ -305,9 +297,9 @@
                     Manage your personal travel information.
                 </p>
 
-                <button>
+                
                     <a href="{{ url_for('profile') }}">VIEW PROFILE →</a>
-                </button>
+                
 
             </div>
 

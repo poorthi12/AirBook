@@ -53,9 +53,12 @@
                 </div>
 
             </div>
+
+
             <div class="ticket-date">
-                📅 {{ booking.formatted_date }}
+                📅 {{ booking.formatted_date or booking.flight_date }}
             </div>
+
 
             <div class="confirmation-route">
 
@@ -71,9 +74,7 @@
 
 
                 <div class="confirmation-line">
-
                     ───────── ✈ ─────────
-
                 </div>
 
 
@@ -128,7 +129,40 @@
         </div>
 
 
+        <!-- QR CODE -->
+
+        <div class="ticket-qr-section">
+
+            <div class="ticket-qr">
+
+                <span>SCAN TO VERIFY</span>
+
+                <img
+                    src="data:image/png;base64,{{ qr_code }}"
+                    alt="Booking QR Code"
+                >
+
+                <p>
+                    Scan this QR code to view your booking details.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACTIONS -->
+
         <div class="confirmation-actions">
+
+            <a href="javascript:window.print();" class="print-ticket-btn">
+                PRINT TICKET
+            </a>
+
+            <a href="{{ url_for('download_ticket', booking_id=booking._id) }}"
+            class="download-ticket-btn">
+                DOWNLOAD PDF
+            </a>
 
             <a href="{{ url_for('home') }}">
                 BACK TO HOME

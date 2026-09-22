@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Login | SkyBook{% endblock %}
+
+{% block content %}
+
+<div class="admin-login-page">
+
+    <div class="admin-login-card">
+
+        <div class="admin-login-icon">
+            ✈
+        </div>
+
+        <span class="admin-login-label">
+            SKYBOOK // RESTRICTED AREA
+        </span>
+
+        <h1>Admin Login</h1>
+
+        <p>
+            Authorized personnel only.
+        </p>
+
+
+        <form method="POST">
+
+            <div class="admin-input">
+
+                <label>ADMIN EMAIL</label>
+
+                <input
+                    type="email"
+                    name="email"
+                    placeholder="admin@skybook.com"
+                    required
+                >
+
+            </div>
+
+
+            <div class="admin-input">
+
+                <label>PASSWORD</label>
+
+                <input
+                    type="password"
+                    name="password"
+                    placeholder="Enter password"
+                    required
+                >
+
+            </div>
+
+
+            <button type="submit">
+                ENTER CONTROL CENTER →
+            </button>
+
+        </form>
+
+
+        <a
+            href="{{ url_for('login') }}"
+            class="back-user-login"
+        >
+            ← USER LOGIN
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

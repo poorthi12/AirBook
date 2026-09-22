@@ -1,0 +1,1339 @@
+/* =================================
+   SKYBOOK ADMIN DASHBOARD
+================================= */
+
+.admin-page {
+    min-height: 100vh;
+    padding: 55px 7%;
+    position: relative;
+    overflow: hidden;
+
+    background:
+        radial-gradient(circle at 15% 20%, rgba(80, 120, 255, 0.16), transparent 30%),
+        radial-gradient(circle at 85% 70%, rgba(160, 80, 255, 0.12), transparent 30%),
+        linear-gradient(135deg, #070911, #0d111d 55%, #080a12);
+
+    color: white;
+}
+
+.admin-page::before {
+    content: "";
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 50%;
+    top: -250px;
+    right: -150px;
+}
+
+.admin-page::after {
+    content: "";
+    position: absolute;
+    width: 350px;
+    height: 350px;
+    border: 1px solid rgba(255,255,255,0.03);
+    border-radius: 50%;
+    bottom: -180px;
+    left: -120px;
+}
+
+    .admin-header {
+        position: relative;
+        z-index: 2;
+
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        margin-bottom: 45px;
+    }
+
+.admin-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #7d8cff;
+}
+
+.admin-header h1 {
+    margin: 10px 0 8px;
+    font-size: 42px;
+    letter-spacing: -1px;
+}
+
+.admin-header p {
+    color: #777d8d;
+    font-size: 14px;
+}
+
+.admin-status {
+    padding: 12px 18px;
+    border: 1px solid rgba(100,255,180,0.15);
+    border-radius: 30px;
+
+    background: rgba(100,255,180,0.05);
+
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: #8dffbd;
+}
+
+.status-dot {
+    display: inline-block;
+
+    width: 7px;
+    height: 7px;
+
+    margin-right: 8px;
+
+    border-radius: 50%;
+    background: #66ff9d;
+
+    box-shadow: 0 0 12px #66ff9d;
+}
+
+
+/* =================================
+   STAT CARDS
+================================= */
+
+.admin-stats {
+    position: relative;
+    z-index: 2;
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+
+    margin-bottom: 35px;
+}
+
+.admin-stat-card {
+    padding: 25px;
+
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+
+    background: rgba(255,255,255,0.035);
+
+    backdrop-filter: blur(20px);
+
+    transition: 0.25s ease;
+}
+
+.admin-stat-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(255,255,255,0.18);
+    background: rgba(255,255,255,0.055);
+}
+
+.admin-stat-card span {
+    display: block;
+
+    color: #747b8c;
+    font-size: 9px;
+    letter-spacing: 2px;
+}
+
+.admin-stat-card strong {
+    display: block;
+
+    margin: 12px 0 5px;
+
+    font-size: 30px;
+}
+
+.admin-stat-card small {
+    color: #626878;
+    font-size: 10px;
+}
+
+
+/* =================================
+   ACTION CARDS
+================================= */
+
+.admin-actions {
+    position: relative;
+    z-index: 2;
+
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.admin-action-card {
+    padding: 30px;
+
+    min-height: 190px;
+
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+
+    background: rgba(255,255,255,0.035);
+
+    backdrop-filter: blur(20px);
+
+    transition: 0.25s ease;
+}
+
+.admin-action-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(125,140,255,0.35);
+}
+
+.action-icon {
+    font-size: 25px;
+    margin-bottom: 20px;
+}
+
+.admin-action-card h2 {
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.admin-action-card p {
+    color: #73798a;
+    font-size: 12px;
+    margin-bottom: 20px;
+}
+
+.admin-action-card a {
+    color: white;
+    text-decoration: none;
+
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.admin-action-card a:hover {
+    color: #8d99ff;
+}
+
+
+/* =================================
+   MOBILE
+================================= */
+
+@media (max-width: 900px) {
+
+    .admin-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .admin-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 550px) {
+
+    .admin-page {
+        padding: 35px 20px;
+    }
+
+    .admin-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-header h1 {
+        font-size: 32px;
+    }
+}
+/* =================================
+   FLIGHT MANAGEMENT
+================================= */
+
+.admin-add-btn {
+    display: inline-block;
+    padding: 13px 20px;
+
+    border-radius: 10px;
+
+    background: white;
+    color: #111;
+
+    text-decoration: none;
+
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.flight-admin-table {
+    position: relative;
+    z-index: 2;
+
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+
+    overflow: hidden;
+
+    background: rgba(255,255,255,0.035);
+    backdrop-filter: blur(20px);
+}
+
+.flight-table-header,
+.flight-table-row {
+    display: grid;
+    grid-template-columns:
+        1fr
+        1.4fr
+        1fr
+        1.2fr
+        .8fr
+        .8fr
+        .8fr;
+
+    gap: 15px;
+    align-items: center;
+}
+
+.flight-table-header {
+    padding: 18px 22px;
+
+    color: #656b7a;
+
+    font-size: 8px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+.flight-table-row {
+    padding: 20px 22px;
+
+    color: #d8dae0;
+
+    font-size: 11px;
+
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.flight-table-row:last-child {
+    border-bottom: none;
+}
+
+.flight-table-row strong {
+    display: block;
+    color: white;
+}
+
+.flight-table-row small {
+    display: block;
+
+    margin-top: 5px;
+
+    color: #686e7d;
+    font-size: 9px;
+}
+
+.delete-flight-btn {
+    padding: 8px 12px;
+
+    border: 1px solid rgba(255,80,80,0.2);
+    border-radius: 7px;
+
+    background: rgba(255,70,70,0.06);
+    color: #ff7777;
+
+    font-size: 8px;
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.delete-flight-btn:hover {
+    background: rgba(255,70,70,0.14);
+}
+
+.no-flights {
+    padding: 50px;
+    text-align: center;
+
+    color: #666c7b;
+}
+
+
+/* =================================
+   ADD FLIGHT FORM
+================================= */
+
+.flight-form {
+    position: relative;
+    z-index: 2;
+
+    max-width: 850px;
+
+    padding: 35px;
+
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+
+    background: rgba(255,255,255,0.035);
+    backdrop-filter: blur(20px);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+}
+
+.form-grid label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #777d8d;
+
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.form-grid input {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 13px 15px;
+
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 9px;
+
+    outline: none;
+
+    background: rgba(255,255,255,0.04);
+    color: white;
+
+    font-size: 12px;
+}
+
+.form-grid input:focus {
+    border-color: rgba(130,140,255,0.5);
+}
+
+.form-grid input::placeholder {
+    color: #555b69;
+}
+
+.flight-form-actions {
+    display: flex;
+    gap: 12px;
+
+    margin-top: 30px;
+}
+
+.admin-save-btn,
+.admin-cancel-btn {
+    padding: 13px 22px;
+
+    border-radius: 9px;
+
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: 1px;
+
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.admin-save-btn {
+    border: none;
+
+    background: white;
+    color: #111;
+}
+
+.admin-cancel-btn {
+    border: 1px solid rgba(255,255,255,0.1);
+
+    color: #aaa;
+}
+
+
+/* =================================
+   RESPONSIVE
+================================= */
+
+@media (max-width: 1000px) {
+
+    .flight-admin-table {
+        overflow-x: auto;
+    }
+
+    .flight-table-header,
+    .flight-table-row {
+        min-width: 900px;
+    }
+}
+
+@media (max-width: 650px) {
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .flight-form {
+        padding: 20px;
+    }
+}
+.flight-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.flight-actions form {
+    margin: 0;
+}
+
+.edit-flight-btn {
+    display: inline-block;
+
+    padding: 8px 12px;
+
+    border: 1px solid rgba(130,140,255,0.2);
+    border-radius: 7px;
+
+    background: rgba(130,140,255,0.06);
+    color: #aab1ff;
+
+    text-decoration: none;
+
+    font-size: 8px;
+    font-weight: bold;
+}
+
+.edit-flight-btn:hover {
+    background: rgba(130,140,255,0.14);
+}
+/* =================================
+   ADMIN BOOKING TABLE
+================================= */
+
+.booking-admin-table {
+    width: 100%;
+    margin-top: 30px;
+    overflow-x: auto;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+
+    background: rgba(255, 255, 255, 0.035);
+    backdrop-filter: blur(18px);
+
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* HEADER */
+
+.booking-table-header,
+.booking-table-row {
+    display: grid;
+
+    grid-template-columns:
+        90px
+        minmax(180px, 1.5fr)
+        110px
+        120px
+        110px
+        70px
+        100px
+        110px
+        150px;
+
+    align-items: center;
+    column-gap: 20px;
+
+    min-width: 1250px;
+}
+
+/* HEADER */
+
+.booking-table-header {
+    padding: 18px 24px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+    color: #858c99;
+
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+
+    white-space: nowrap;
+}
+
+/* ROW */
+
+.booking-table-row {
+    padding: 20px 24px;
+
+    min-height: 75px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+    color: #e8eaf0;
+
+    font-size: 12px;
+
+    transition: background 0.2s ease;
+}
+
+.booking-table-row:hover {
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.booking-table-row:last-child {
+    border-bottom: none;
+}
+
+/* PASSENGER / FLIGHT DETAILS */
+
+.booking-table-row > div {
+    min-width: 0;
+}
+
+.booking-table-row strong {
+    display: block;
+
+    color: #ffffff;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    line-height: 1.4;
+}
+
+.booking-table-row small {
+    display: block;
+
+    margin-top: 5px;
+
+    color: #858c99;
+
+    font-size: 10px;
+
+    line-height: 1.3;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* STATUS */
+
+.booking-status {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-width: 92px;
+
+    padding: 7px 12px;
+
+    border-radius: 20px;
+
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+
+    white-space: nowrap;
+}
+
+.booking-status.confirmed {
+    color: #45d995;
+
+    background: rgba(40, 200, 120, 0.12);
+
+    border: 1px solid rgba(40, 200, 120, 0.20);
+}
+
+.booking-status.cancelled {
+    color: #ff7777;
+
+    background: rgba(255, 90, 90, 0.10);
+
+    border: 1px solid rgba(255, 90, 90, 0.18);
+}
+
+.booking-status.pending {
+    color: #ffc857;
+
+    background: rgba(255, 200, 80, 0.10);
+
+    border: 1px solid rgba(255, 200, 80, 0.18);
+}
+
+
+/* ACTION BUTTONS */
+
+.admin-booking-actions {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    white-space: nowrap;
+}
+
+.admin-booking-actions form {
+    margin: 0;
+}
+
+.admin-view-btn,
+.admin-cancel-btn {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    height: 32px;
+
+    padding: 0 12px;
+
+    border-radius: 8px;
+
+    font-size: 8px;
+    font-weight: 700;
+
+    letter-spacing: 0.8px;
+
+    cursor: pointer;
+
+    text-decoration: none;
+
+    transition: 0.2s ease;
+}
+
+.admin-view-btn {
+    color: #ffffff;
+
+    background: rgba(255, 255, 255, 0.07);
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.admin-view-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+
+    transform: translateY(-1px);
+}
+
+.admin-cancel-btn {
+    color: #ff7777;
+
+    background: rgba(255, 80, 80, 0.08);
+
+    border: 1px solid rgba(255, 80, 80, 0.16);
+}
+
+.admin-cancel-btn:hover {
+    background: rgba(255, 80, 80, 0.16);
+
+    transform: translateY(-1px);
+}
+
+
+/* EMPTY STATE */
+
+.no-bookings {
+    padding: 60px 20px;
+
+    text-align: center;
+
+    color: #858c99;
+
+    font-size: 13px;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 900px) {
+
+    .booking-admin-table {
+        overflow-x: auto;
+    }
+
+    .booking-table-header,
+    .booking-table-row {
+        min-width: 1250px;
+    }
+
+}
+
+
+
+.booking-table-row:last-child {
+    border-bottom: none;
+}
+
+.booking-table-row strong {
+    display: block;
+    color: white;
+}
+
+.booking-table-row small {
+    display: block;
+
+    margin-top: 5px;
+
+    color: #686e7d;
+
+    font-size: 8px;
+}
+
+.booking-status {
+    display: inline-block;
+
+    padding: 6px 9px;
+
+    border-radius: 20px;
+
+    font-size: 7px;
+    font-weight: bold;
+    letter-spacing: .5px;
+}
+
+.booking-status.confirmed {
+    background: rgba(70,220,140,0.08);
+    color: #72e6a0;
+
+    border: 1px solid rgba(70,220,140,0.15);
+}
+
+.booking-status.cancelled {
+    background: rgba(255,70,70,0.08);
+    color: #ff7777;
+
+    border: 1px solid rgba(255,70,70,0.15);
+}
+
+.booking-status.pending {
+    background: rgba(255,190,70,0.08);
+    color: #ffc65f;
+
+    border: 1px solid rgba(255,190,70,0.15);
+}
+
+.no-bookings {
+    padding: 50px;
+
+    text-align: center;
+
+    color: #666c7b;
+}
+
+
+/* =================================
+   BOOKING TABLE RESPONSIVE
+================================= */
+
+@media (max-width: 1100px) {
+
+    .booking-admin-table {
+        overflow-x: auto;
+    }
+
+    .booking-table-header,
+    .booking-table-row {
+        min-width: 1050px;
+    }
+}
+/* =================================
+   ADMIN LOGIN
+================================= */
+
+.admin-login-page {
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 30px;
+
+    background:
+        radial-gradient(circle at 50% 20%, rgba(90,110,255,0.16), transparent 35%),
+        radial-gradient(circle at 20% 80%, rgba(150,80,255,0.10), transparent 30%),
+        linear-gradient(135deg, #05060b, #0c101b);
+
+    color: white;
+}
+
+.admin-login-card {
+    width: 390px;
+
+    padding: 45px;
+
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 24px;
+
+    background: rgba(255,255,255,0.045);
+
+    backdrop-filter: blur(25px);
+
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+
+    text-align: center;
+}
+
+.admin-login-icon {
+    width: 55px;
+    height: 55px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 auto 22px;
+
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+
+    background: rgba(255,255,255,0.05);
+
+    font-size: 22px;
+}
+
+.admin-login-label {
+    color: #858fff;
+
+    font-size: 9px;
+    letter-spacing: 2px;
+}
+
+.admin-login-card h1 {
+    margin: 12px 0 8px;
+
+    font-size: 30px;
+}
+
+.admin-login-card > p {
+    margin-bottom: 30px;
+
+    color: #6f7584;
+    font-size: 12px;
+}
+
+.admin-input {
+    text-align: left;
+    margin-bottom: 18px;
+}
+
+.admin-input label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #777d8d;
+
+    font-size: 8px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+}
+
+.admin-input input {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 14px;
+
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+
+    outline: none;
+
+    background: rgba(0,0,0,0.2);
+    color: white;
+
+    font-size: 12px;
+}
+
+.admin-input input:focus {
+    border-color: rgba(130,140,255,0.5);
+}
+
+.admin-input input::placeholder {
+    color: #4f5562;
+}
+
+.admin-login-card button {
+    width: 100%;
+
+    margin-top: 8px;
+    padding: 14px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: white;
+    color: #111;
+
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+
+    cursor: pointer;
+}
+
+.admin-login-card button:hover {
+    opacity: 0.9;
+}
+
+.back-user-login {
+    display: inline-block;
+
+    margin-top: 25px;
+
+    color: #666c7a;
+
+    font-size: 9px;
+    text-decoration: none;
+    letter-spacing: 1px;
+}
+
+.back-user-login:hover {
+    color: white;
+}
+/* ================================
+   USERS MANAGEMENT
+================================ */
+
+.admin-table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.035);
+    backdrop-filter: blur(18px);
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.admin-table th {
+    padding: 18px 22px;
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    color: #8f96a3;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    white-space: nowrap;
+}
+
+.admin-table td {
+    padding: 20px 22px;
+    font-size: 13px;
+    color: #e8eaf0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    vertical-align: middle;
+    word-break: break-word;
+}
+
+.admin-table th:nth-child(1),
+.admin-table td:nth-child(1) {
+    width: 22%;
+}
+
+.admin-table th:nth-child(2),
+.admin-table td:nth-child(2) {
+    width: 28%;
+}
+
+.admin-table th:nth-child(3),
+.admin-table td:nth-child(3) {
+    width: 18%;
+}
+
+.admin-table th:nth-child(4),
+.admin-table td:nth-child(4) {
+    width: 12%;
+}
+
+.admin-table th:nth-child(5),
+.admin-table td:nth-child(5) {
+    width: 20%;
+}
+
+.admin-table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.admin-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.admin-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-table td:first-child {
+    font-weight: 600;
+    color: white;
+}
+
+.status-confirmed,
+.status-cancelled {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 95px;
+    padding: 7px 12px;
+    border-radius: 20px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+}
+
+.status-confirmed {
+    background: rgba(40, 200, 120, 0.12);
+    color: #45d995;
+    border: 1px solid rgba(40, 200, 120, 0.2);
+}
+
+.status-cancelled {
+    background: rgba(255, 90, 90, 0.10);
+    color: #ff7777;
+    border: 1px solid rgba(255, 90, 90, 0.18);
+}
+
+
+/* Mobile */
+
+@media (max-width: 800px) {
+
+    .admin-table {
+        min-width: 750px;
+    }
+
+    .admin-table th,
+    .admin-table td {
+        padding: 15px 16px;
+    }
+
+}
+/* ================================
+   ADMIN BOOKING DETAILS
+================================ */
+
+.admin-detail-card {
+    width: 100%;
+    margin-top: 30px;
+    padding: 35px;
+    box-sizing: border-box;
+
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+
+    backdrop-filter: blur(20px);
+}
+
+.admin-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding-bottom: 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-detail-header > div {
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-detail-header span:first-child {
+    color: #858c99;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+}
+
+.admin-detail-header h2 {
+    margin: 8px 0 0;
+    color: #ffffff;
+    font-size: 24px;
+}
+
+/* SECTIONS */
+
+.admin-detail-section {
+    padding: 28px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.admin-detail-section h3 {
+    margin: 0 0 22px;
+
+    color: #858c99;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+}
+
+/* INFORMATION GRID */
+
+.admin-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 45px;
+    row-gap: 24px;
+    width: 100%;
+}
+
+.admin-detail-grid > div {
+    min-width: 0;
+}
+
+.admin-detail-grid span {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #858c99;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.admin-detail-grid strong {
+    display: block;
+
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+
+    word-break: break-word;
+}
+
+/* ACTIONS */
+
+.admin-detail-actions {
+    display: flex;
+    align-items: center;
+
+    padding-top: 25px;
+}
+
+.admin-back-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 12px 18px;
+
+    border-radius: 9px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+
+    background: rgba(255, 255, 255, 0.06);
+
+    color: #ffffff;
+    text-decoration: none;
+
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+
+    transition: 0.2s ease;
+}
+
+.admin-back-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+}
+
+/* MOBILE */
+
+@media (max-width: 900px) {
+
+    .admin-detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .admin-detail-card {
+        padding: 25px 20px;
+    }
+
+    .admin-detail-header {
+        align-items: flex-start;
+        gap: 20px;
+        flex-direction: column;
+    }
+
+    .admin-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+.booking-table-row {
+    margin-bottom: 8px;
+    border-bottom: none;
+    border-radius: 12px;
+}
+.booking-table-row {
+    margin-bottom: 12px;
+}
+.admin-header-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.admin-logout-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 10px 16px;
+
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 8px;
+
+    background: rgba(255, 255, 255, 0.05);
+
+    color: #ffffff;
+    text-decoration: none;
+
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+
+    transition: 0.2s ease;
+}
+
+.admin-logout-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+}
+.admin-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-left: auto;
+    flex-shrink: 0;
+}

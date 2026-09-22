@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Flights | SkyBook{% endblock %}
+
+{% block content %}
+
+<div class="admin-page">
+
+    <div class="admin-header">
+
+        <div>
+            <span class="admin-label">SKYBOOK // FLIGHT CONTROL</span>
+            <h1>Manage Flights</h1>
+            <p>View and manage all scheduled flights.</p>
+        </div>
+
+        <a href="{{ url_for('admin.add_flight') }}"
+           class="admin-add-btn">
+            + ADD FLIGHT
+        </a>
+
+    </div>
+
+
+    <div class="flight-admin-table">
+
+        <div class="flight-table-header">
+
+            <span>FLIGHT</span>
+            <span>ROUTE</span>
+            <span>DATE</span>
+            <span>TIME</span>
+            <span>PRICE</span>
+            <span>SEATS</span>
+            <span>ACTION</span>
+
+        </div>
+
+
+        {% for flight in flights %}
+
+        <div class="flight-table-row">
+
+            <div>
+                <strong>{{ flight.flight_number }}</strong>
+                <small>{{ flight.airline }}</small>
+            </div>
+
+            <div>
+                <strong>
+                    {{ flight.from_code }}
+                    →
+                    {{ flight.to_code }}
+                </strong>
+
+                <small>
+                    {{ flight["from"] }} → {{ flight["to"] }}
+                </small>
+            </div>
+
+            <div>
+                {{ flight.flight_date }}
+            </div>
+
+            <div>
+                {{ flight.departure }}
+                →
+                {{ flight.arrival }}
+            </div>
+
+            <div>
+                ₹{{ "{:,}".format(flight.price) }}
+            </div>
+
+            <div>
+                {{ flight.available_seats }}/{{ flight.total_seats }}
+            </div>
+
+            <div class="flight-actions">
+
+                <a
+                    href="{{ url_for('admin.edit_flight', flight_id=flight._id) }}"
+                    class="edit-flight-btn"
+                >
+                    EDIT
+                </a>
+
+                <form
+                    action="{{ url_for('admin.delete_flight', flight_id=flight._id) }}"
+                    method="POST"
+                    onsubmit="return confirm('Delete this flight?');"
+                >
+
+                    <button class="delete-flight-btn">
+                        DELETE
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+        {% else %}
+
+        <div class="no-flights">
+            No flights available.
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

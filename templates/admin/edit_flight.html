@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Flight | SkyBook{% endblock %}
+
+{% block content %}
+
+<div class="admin-page">
+
+    <div class="admin-header">
+
+        <div>
+            <span class="admin-label">SKYBOOK // FLIGHT CONTROL</span>
+            <h1>Edit Flight</h1>
+            <p>Update flight information.</p>
+        </div>
+
+    </div>
+
+
+    <form method="POST" class="flight-form">
+
+        <div class="form-grid">
+
+            <div>
+                <label>Flight Number</label>
+                <input
+                    type="text"
+                    name="flight_number"
+                    value="{{ flight.flight_number }}"
+                    required
+                >
+            </div>
+
+            <div>
+                <label>Airline</label>
+                <input
+                    type="text"
+                    name="airline"
+                    value="{{ flight.airline }}"
+                    required
+                >
+            </div>
+
+            <div>
+                <label>From City</label>
+                <input
+                    type="text"
+                    name="from"
+                    value="{{ flight['from'] }}"
+                    required
+                >
+            </div>
+
+            <div>
+                <label>From Code</label>
+                <input
+                    type="text"
+                    name="from_code"
+                    value="{{ flight.from_code }}"
+                    maxlength="3"
+                    required
+                >
+            </div>
+
+            <div>
+                <label>To City</label>
+                <input
+                    type="text"
+                    name="to"
+                    value="{{ flight['to'] }}"
+                    required
+                >
+            </div>
+
+            <div>
+                <label>To Code</label>
+                <input
+                    type="text"
+                    name="to_code"
+                    value="{{ flight.to_code }}"
+                    maxlength="3"
+                    required
+                >
+            </div>
+
+            <div>
+                <label>Flight Date</label>
+                <input
+                    type="date"
+                    name="flight_date"
+                    value="{{ flight.flight_date }}"
+                    required
+                >
+            </div>
+
+            <div>
+                <label>Departure</label>
+                <input
+                    type="time"
+                    name="departure"
+                    value="{{ flight.departure }}"
+                    required
+                >
+            </div>
+
+            <div>
+                <label>Arrival</label>
+                <input
+                    type="time"
+                    name="arrival"
+                    value="{{ flight.arrival }}"
+                    required
+                >
+            </div>
+
+            <div>
+                <label>Price</label>
+                <input
+                    type="number"
+                    name="price"
+                    value="{{ flight.price }}"
+                    min="1"
+                    required
+                >
+            </div>
+
+        </div>
+
+
+        <div class="flight-form-actions">
+
+            <button type="submit" class="admin-save-btn">
+                SAVE CHANGES
+            </button>
+
+            <a
+                href="{{ url_for('admin.manage_flights') }}"
+                class="admin-cancel-btn"
+            >
+                CANCEL
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

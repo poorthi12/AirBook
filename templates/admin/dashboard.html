@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard | SkyBook{% endblock %}
+
+{% block content %}
+
+<div class="admin-page">
+
+    <div class="admin-header">
+
+        <div>
+            <span class="admin-label">SKYBOOK // CONTROL CENTER</span>
+            <h1>Admin Dashboard</h1>
+            <p>Manage your airline booking system.</p>
+        </div>
+
+        <div class="admin-header-actions">
+
+            <div class="admin-status">
+                <span class="status-dot"></span>
+                SYSTEM ONLINE
+            </div>
+
+            <a href="{{ url_for('admin.admin_logout') }}" class="admin-logout-btn">
+                LOGOUT
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <div class="admin-stats">
+
+        <div class="admin-stat-card">
+            <span>USERS</span>
+            <strong>{{ users_count }}</strong>
+            <small>Registered accounts</small>
+        </div>
+
+        <div class="admin-stat-card">
+            <span>FLIGHTS</span>
+            <strong>{{ flights_count }}</strong>
+            <small>Available flights</small>
+        </div>
+
+        <div class="admin-stat-card">
+            <span>BOOKINGS</span>
+            <strong>{{ bookings_count }}</strong>
+            <small>Total bookings</small>
+        </div>
+
+        <div class="admin-stat-card">
+            <span>REVENUE</span>
+            <strong>₹{{ "{:,}".format(revenue) }}</strong>
+            <small>Confirmed payments</small>
+        </div>
+
+    </div>
+
+
+    <div class="admin-actions">
+
+        <div class="admin-action-card">
+            <div class="action-icon">✈</div>
+            <h2>Manage Flights</h2>
+            <p>Add, edit and remove flights.</p>
+            <a href="{{ url_for('admin.manage_flights') }}">
+                OPEN →
+            </a>
+        </div>
+
+        <div class="admin-action-card">
+            <div class="action-icon">▣</div>
+            <h2>Manage Bookings</h2>
+            <p>View and manage passenger bookings.</p>
+            <a href="{{ url_for('admin.manage_bookings') }}">
+                OPEN →
+            </a>
+        </div>
+
+        <div class="admin-action-card">
+            <div class="action-icon">◉</div>
+            <h2>Users</h2>
+            <p>View registered SkyBook users.</p>
+            <a href="{{ url_for('admin.manage_users') }}">
+                OPEN →
+            </a>    
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

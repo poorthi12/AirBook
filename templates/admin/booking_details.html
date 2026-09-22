@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Details | SkyBook{% endblock %}
+
+{% block content %}
+
+<div class="admin-page">
+
+    <div class="admin-header">
+        <div>
+            <span class="admin-label">SKYBOOK // BOOKING DETAILS</span>
+            <h1>Booking Details</h1>
+            <p>Complete reservation information.</p>
+        </div>
+    </div>
+
+    <div class="admin-detail-card">
+
+        <div class="admin-detail-header">
+
+            <div>
+                <span>BOOKING REFERENCE</span>
+                <h2>{{ booking.pnr }}</h2>
+            </div>
+
+            <span class="
+                booking-status
+                {% if booking.booking_status == 'CONFIRMED' %}
+                    confirmed
+                {% elif booking.booking_status == 'CANCELLED' %}
+                    cancelled
+                {% else %}
+                    pending
+                {% endif %}
+            ">
+                {{ booking.booking_status }}
+            </span>
+
+        </div>
+
+
+        <div class="admin-detail-section">
+
+            <h3>FLIGHT INFORMATION</h3>
+
+            <div class="admin-detail-grid">
+
+                <div>
+                    <span>FLIGHT</span>
+                    <strong>{{ booking.flight_number }}</strong>
+                </div>
+
+                <div>
+                    <span>AIRLINE</span>
+                    <strong>{{ booking.airline }}</strong>
+                </div>
+
+                <div>
+                    <span>ROUTE</span>
+                    <strong>
+                        {{ booking.from_code }} → {{ booking.to_code }}
+                    </strong>
+                </div>
+
+                <div>
+                    <span>DATE</span>
+                    <strong>{{ booking.flight_date }}</strong>
+                </div>
+
+                <div>
+                    <span>DEPARTURE</span>
+                    <strong>{{ booking.departure }}</strong>
+                </div>
+
+                <div>
+                    <span>ARRIVAL</span>
+                    <strong>{{ booking.arrival }}</strong>
+                </div>
+
+                <div>
+                    <span>SEAT</span>
+                    <strong>{{ booking.seat }}</strong>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="admin-detail-section">
+
+            <h3>PASSENGER INFORMATION</h3>
+
+            <div class="admin-detail-grid">
+
+                <div>
+                    <span>NAME</span>
+                    <strong>{{ booking.passenger.name }}</strong>
+                </div>
+
+                <div>
+                    <span>EMAIL</span>
+                    <strong>{{ booking.passenger.email }}</strong>
+                </div>
+
+                <div>
+                    <span>PHONE</span>
+                    <strong>{{ booking.passenger.phone }}</strong>
+                </div>
+
+                <div>
+                    <span>GENDER</span>
+                    <strong>{{ booking.passenger.gender }}</strong>
+                </div>
+
+                <div>
+                    <span>DATE OF BIRTH</span>
+                    <strong>{{ booking.passenger.dob }}</strong>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="admin-detail-section">
+
+            <h3>PAYMENT INFORMATION</h3>
+
+            <div class="admin-detail-grid">
+
+                <div>
+                    <span>BASE FARE</span>
+                    <strong>₹{{ "{:,}".format(booking.base_fare) }}</strong>
+                </div>
+
+                <div>
+                    <span>TAXES & FEES</span>
+                    <strong>₹{{ "{:,}".format(booking.taxes) }}</strong>
+                </div>
+
+                <div>
+                    <span>TOTAL PAID</span>
+                    <strong>₹{{ "{:,}".format(booking.total) }}</strong>
+                </div>
+
+                <div>
+                    <span>PAYMENT STATUS</span>
+                    <strong>{{ booking.payment_status }}</strong>
+                </div>
+
+                <div>
+                    <span>PAYMENT METHOD</span>
+                    <strong>{{ booking.payment_method }}</strong>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="admin-detail-actions">
+
+            <a
+                href="{{ url_for('admin.manage_bookings') }}"
+                class="admin-back-btn"
+            >
+                ← BACK TO BOOKINGS
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}  

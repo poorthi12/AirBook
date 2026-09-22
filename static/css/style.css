@@ -7,20 +7,29 @@
 body {
     font-family: Arial, sans-serif;
     min-height: 100vh;
-    background:
-        linear-gradient(
-            rgba(0, 0, 0, 0.45),
-            rgba(0, 0, 0, 0.45)
-        ),
-        url("../images/airplane.png");
 
-    background-size: cover;
-    background-position: center;
+    background:
+        radial-gradient(
+            circle at 15% 15%,
+            rgba(42, 67, 104, 0.45),
+            transparent 35%
+        ),
+        radial-gradient(
+            circle at 85% 85%,
+            rgba(20, 43, 75, 0.5),
+            transparent 40%
+        ),
+        linear-gradient(
+            135deg,
+            #0b1628 0%,
+            #101f35 50%,
+            #162a45 100%
+        );
+
     background-attachment: fixed;
 
-    color: white;
+    color: #f5f7fa;
 }
-
 .login-page {
     min-height: 100vh;
 
@@ -238,17 +247,25 @@ body {
     min-height: 100vh;
 
     background:
-        linear-gradient(
-            rgba(5, 15, 30, 0.78),
-            rgba(5, 15, 30, 0.90)
+        radial-gradient(
+            circle at 20% 15%,
+            rgba(42, 67, 104, 0.35),
+            transparent 35%
         ),
-        url("../images/airplane.png");
+        radial-gradient(
+            circle at 80% 85%,
+            rgba(20, 43, 75, 0.40),
+            transparent 40%
+        ),
+        linear-gradient(
+            135deg,
+            #0b1628 0%,
+            #101f35 50%,
+            #162a45 100%
+        );
 
-    background-size: cover;
-    background-position: center;
     background-attachment: fixed;
 }
-
 
 /* NAVBAR */
 
@@ -277,20 +294,6 @@ body {
     letter-spacing: 2px;
 }
 
-.nav-links {
-    display: flex;
-    gap: 35px;
-}
-
-.nav-links a {
-    color: #ddd;
-    text-decoration: none;
-    font-size: 14px;
-}
-
-.nav-links a:hover {
-    color: white;
-}
 
 .user-area {
     display: flex;
@@ -579,16 +582,20 @@ body {
         repeat(3, 1fr);
 
     gap: 20px;
-}
+}.quick-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 
-.quick-card {
     padding: 30px;
+    min-height: 220px;
+    box-sizing: border-box;
 
     border-radius: 18px;
 
-    background: rgba(255,255,255,0.07);
+    background: rgba(255, 255, 255, 0.07);
 
-    border: 1px solid rgba(255,255,255,0.12);
+    border: 1px solid rgba(255, 255, 255, 0.12);
 
     backdrop-filter: blur(15px);
 
@@ -598,7 +605,7 @@ body {
 .quick-card:hover {
     transform: translateY(-5px);
 
-    background: rgba(255,255,255,0.11);
+    background: rgba(255, 255, 255, 0.11);
 }
 
 .quick-icon {
@@ -621,18 +628,42 @@ body {
     margin-bottom: 20px;
 }
 
-.quick-card button {
-    background: transparent;
+/* QUICK CARD BUTTON */
 
-    border: none;
+.quick-card a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-top: auto;
+
+    padding: 11px 18px;
+
+    border-radius: 8px;
+
+    background: rgba(255, 255, 255, 0.08);
+
+    border: 1px solid rgba(255, 255, 255, 0.14);
 
     color: white;
 
-    font-size: 12px;
+    text-decoration: none;
+
+    font-size: 10px;
 
     font-weight: bold;
 
-    cursor: pointer;
+    letter-spacing: 0.8px;
+
+    transition: 0.25s ease;
+}
+
+.quick-card a:hover {
+    background: rgba(255, 255, 255, 0.15);
+
+    border-color: rgba(255, 255, 255, 0.25);
+
+    transform: translateY(-2px);
 }
 
 
@@ -656,6 +687,7 @@ body {
         display: none;
     }
 }
+
 
 @media (max-width: 600px) {
 
@@ -682,7 +714,8 @@ body {
     .quick-section {
         padding: 20px 20px 50px;
     }
-}
+
+}   
 /* =========================================
    FLIGHT RESULTS
 ========================================= */
@@ -2388,7 +2421,65 @@ body {
     }
 
 }   
+/* ================================
+   QR CODE
+================================ */
 
+.ticket-qr-section {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 25px 0;
+}
+
+.ticket-qr {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.ticket-qr span {
+    display: block;
+    margin-bottom: 10px;
+
+    color: #777;
+
+    font-size: 9px;
+
+    font-weight: 700;
+
+    letter-spacing: 1.5px;
+}
+
+.ticket-qr img {
+    width: 70px !important;
+    height: 70px !important;
+
+    min-width: 70px !important;
+    min-height: 70px !important;
+
+    max-width: 70px !important;
+    max-height: 70px !important;
+
+    display: block !important;
+
+    object-fit: contain;
+
+    margin: 0 auto !important;
+}
+
+.ticket-qr p {
+    margin: 10px 0 0;
+
+    color: #777;
+
+    font-size: 10px;
+
+    text-align: center;
+}   
 /* ============================= */
 /* BOOKING HISTORY */
 /* ============================= */
@@ -3613,3 +3704,93 @@ body {
     transform: translateY(-1px);
 }
 
+.cancelled-badge {
+    color: #ff5c5c;
+    border-color: rgba(255, 92, 92, 0.3);
+}
+
+.cancelled-card {
+    opacity: 0.85;
+}
+/* ================================
+   PRINT TICKET
+================================ */
+
+.print-ticket-btn {
+    display: inline-block;
+
+    padding: 14px 25px;
+
+    margin-right: 10px;
+
+    border-radius: 10px;
+
+    background: white;
+
+    color: #111;
+
+    text-decoration: none;
+
+    font-size: 12px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+@media print {
+
+    body {
+        background: white !important;
+        color: black !important;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    .confirmation-container,
+    .confirmation-container * {
+        visibility: visible;
+    }
+
+    .confirmation-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+
+        width: 100%;
+
+        background: white !important;
+        color: black !important;
+
+        box-shadow: none !important;
+    }
+
+    .confirmation-actions {
+        display: none !important;
+    }
+
+    .success-icon {
+        color: black !important;
+        background: white !important;
+    }
+
+    .confirmation-card,
+    .pnr-card {
+        background: white !important;
+        border: 1px solid #ccc !important;
+        color: black !important;
+    }
+
+    .confirmation-card *,
+    .pnr-card * {
+        color: black !important;
+    }
+
+    .ticket-qr img {
+        width: 70px !important;
+        height: 70px !important;
+    }
+
+}

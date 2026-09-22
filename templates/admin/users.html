@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Users | SkyBook{% endblock %}
+
+{% block content %}
+
+<div class="admin-page">
+
+    <div class="admin-header">
+
+        <div>
+            <span class="admin-label">SKYBOOK // USER MANAGEMENT</span>
+            <h1>Registered Users</h1>
+            <p>View all registered SkyBook accounts.</p>
+        </div>
+
+        <div class="admin-status">
+            <span class="status-dot"></span>
+            SYSTEM ONLINE
+        </div>
+
+    </div>
+
+    <div class="admin-table-container">
+
+        <table class="admin-table">
+
+            <thead>
+                <tr>
+                    <th>NAME</th>
+                    <th>EMAIL</th>
+                    <th>PHONE</th>
+                    <th>ROLE</th>
+                    <th>VERIFIED</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for user in users %}
+
+                <tr>
+
+                    <td>{{ user.name }}</td>
+
+                    <td>{{ user.email }}</td>
+
+                    <td>{{ user.phone or "N/A" }}</td>
+
+                    <td>
+                        {{ user.role or "user" }}
+                    </td>
+
+                    <td>
+                        {% if user.verified %}
+                            <span class="status-confirmed">VERIFIED</span>
+                        {% else %}
+                            <span class="status-cancelled">NOT VERIFIED</span>
+                        {% endif %}
+                    </td>
+
+                </tr>
+
+                {% else %}
+
+                <tr>
+                    <td colspan="5" style="text-align:center;">
+                        No users found.
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

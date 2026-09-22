@@ -1,10 +1,37 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
-from config import SECRET_KEY
+from flask import Flask, render_template, request, redirect, url_for, flash, session,send_file
 from database.db import test_connection, users_collection, flights_collection,bookings_collection
 from werkzeug.security import generate_password_hash, check_password_hash   
 from bson.objectid import ObjectId
-from datetime import datetime
+from datetime import datetime,timedelta
+from utils.email import mail
+import random
+import qrcode
+import io
+from PIL import Image
+import base64
+from reportlab.pdfgen import canvas
+from routes.admin import admin_bp
+from config import (
+    MONGO_URI,
+    SECRET_KEY,
+    MAIL_SERVER,
+    MAIL_PORT,
+    MAIL_USE_TLS,
+    MAIL_USERNAME,
+    MAIL_DEFAULT_SENDER,
+    MAIL_PASSWORD
+)
 app = Flask(__name__)
+
+app.register_blueprint(admin_bp)
+app.config["MAIL_SERVER"] = MAIL_SERVER
+app.config["MAIL_PORT"] = MAIL_PORT
+app.config["MAIL_USE_TLS"] = MAIL_USE_TLS
+app.config["MAIL_USERNAME"] = MAIL_USERNAME
+app.config["MAIL_PASSWORD"] = MAIL_PASSWORD
+app.config["MAIL_DEFAULT_SENDER"] = MAIL_DEFAULT_SENDER
+
+mail.init_app(app)
 
 app.secret_key = SECRET_KEY
 @app.route("/")
@@ -49,6 +76,7 @@ def login():
         session["user_id"] = str(user["_id"])
         session["user_name"] = user["name"]
         session["user_email"] = user["email"]
+        session["user_role"] = user.get("role", "user")
 
         flash("Login successful!", "success")
 
@@ -76,22 +104,18 @@ def register():
         password = request.form.get("password", "")
         confirm_password = request.form.get("confirm_password", "")
 
-        # Check empty fields
         if not name or not email or not phone or not password:
             flash("Please fill in all fields.", "error")
             return redirect(url_for("register"))
 
-        # Check password
         if password != confirm_password:
             flash("Passwords do not match.", "error")
             return redirect(url_for("register"))
 
-        # Check password length
         if len(password) < 6:
             flash("Password must contain at least 6 characters.", "error")
             return redirect(url_for("register"))
 
-        # Check if email already exists
         existing_user = users_collection.find_one({
             "email": email
         })
@@ -100,30 +124,118 @@ def register():
             flash("An account with this email already exists.", "error")
             return redirect(url_for("register"))
 
-        # Hash password
-        password_hash = generate_password_hash(password)
+        # Generate 6-digit OTP
+        otp = str(random.randint(100000, 999999))
 
-        # Create user
-        user = {
+        # Store OTP temporarily in session
+        session["registration_otp"] = otp
+        session["registration_data"] = {
             "name": name,
             "email": email,
             "phone": phone,
-            "password": password_hash,
-            "verified": False
+            "password": password
         }
 
-        # Insert into MongoDB
+        # OTP expires after 5 minutes
+        session["otp_expiry"] = (
+            datetime.now() + timedelta(minutes=5)
+        ).timestamp()
+
+        # Send OTP email
+        from utils.email import send_otp_email
+
+        try:
+            send_otp_email(email, otp)
+        except Exception as e:
+            print("OTP EMAIL ERROR:", e)
+
+            session.pop("registration_otp", None)
+            session.pop("registration_data", None)
+            session.pop("otp_expiry", None)
+
+            flash(
+                "Unable to send verification email. Please try again.",
+                "error"
+            )
+
+            return redirect(url_for("register"))
+
+        flash(
+            "Verification OTP sent to your email.",
+            "success"
+        )
+
+        return redirect(url_for("verify"))
+
+    return render_template("auth/register.html")
+
+@app.route("/verify", methods=["GET", "POST"])
+def verify():
+
+    if "registration_otp" not in session:
+        flash("No verification request found. Please register again.", "error")
+        return redirect(url_for("register"))
+
+    if request.method == "POST":
+
+        entered_otp = request.form.get("otp", "").strip()
+
+        stored_otp = session.get("registration_otp")
+        expiry = session.get("otp_expiry")
+        registration_data = session.get("registration_data")
+
+        if not stored_otp or not registration_data:
+            flash("Verification session expired. Please register again.", "error")
+            return redirect(url_for("register"))
+
+        # Check OTP expiry
+        if not expiry or datetime.now().timestamp() > expiry:
+
+            session.pop("registration_otp", None)
+            session.pop("registration_data", None)
+            session.pop("otp_expiry", None)
+
+            flash("OTP has expired. Please register again.", "error")
+            return redirect(url_for("register"))
+
+        # Check OTP
+        if entered_otp != stored_otp:
+
+            flash("Invalid OTP. Please try again.", "error")
+            return redirect(url_for("verify"))
+
+        # Create user after successful verification
+        password_hash = generate_password_hash(
+            registration_data["password"]
+        )
+
+        user = {
+            "name": registration_data["name"],
+            "email": registration_data["email"],
+            "phone": registration_data["phone"],
+            "password": password_hash,
+            "verified": True
+        }
+
         result = users_collection.insert_one(user)
 
-        print("USER INSERTED SUCCESSFULLY")
+        print("USER VERIFIED AND CREATED")
         print("USER ID:", result.inserted_id)
-        print("TOTAL USERS:", users_collection.count_documents({}))
+        print("EMAIL:", registration_data["email"])
 
-        flash("Account created successfully! You can now login.", "success")
+        # Clear temporary registration data
+        session.pop("registration_otp", None)
+        session.pop("registration_data", None)
+        session.pop("otp_expiry", None)
+
+        flash(
+            "Email verified successfully! You can now login.",
+            "success"
+        )
 
         return redirect(url_for("login"))
 
-    return render_template("auth/register.html")
+    return render_template("auth/verify.html")
 
 
 @app.route("/search-flights", methods=["GET", "POST"])
@@ -361,7 +473,7 @@ def booking_review():
         return redirect(url_for("payment"))
 
     return render_template(
-        "booking/payment.html",
+        "booking/review.html",
         flight=flight,
         passenger=passenger,
         selected_seat=selected_seat,
@@ -402,6 +514,9 @@ def payment():
     if request.method == "POST":
 
         payment_method = request.form.get("payment_method")
+        # Prevent duplicate payment submission
+        if session.get("payment_completed"):
+            return redirect(url_for("booking_confirmation"))
 
         if not payment_method:
             flash("Please select a payment method.", "error")
@@ -525,6 +640,8 @@ def payment():
 
         session["booking_id"] = str(result.inserted_id)
         session["pnr"] = pnr
+        session["payment_completed"] = True
+        
 
         # -----------------------------------
         # GO TO CONFIRMATION
@@ -568,9 +685,51 @@ def booking_confirmation():
         flash("Booking not found.", "error")
         return redirect(url_for("home"))
 
+    # Create QR code data
+    qr_data = f"""
+SkyBook Flight Ticket
+
+PNR: {booking['pnr']}
+Flight: {booking['flight_number']}
+Date: {booking.get('flight_date', '')}
+From: {booking['from']} ({booking['from_code']})
+To: {booking['to']} ({booking['to_code']})
+Departure: {booking['departure']}
+Arrival: {booking['arrival']}
+Passenger: {booking['passenger']['name']}
+Seat: {booking['seat']}
+Status: {booking['booking_status']}
+"""
+
+    # Generate QR code
+    qr = qrcode.QRCode(
+        version=1,
+        box_size=4,
+        border=2
+    )
+
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+
+    qr_image = qr.make_image()
+
+    # Resize QR code to exactly 50 × 50 pixels
+    qr_image = qr_image.resize(
+        (50, 50),
+        Image.Resampling.LANCZOS
+    )
+
+    buffer = io.BytesIO()
+    qr_image.save(buffer, format="PNG")
+
+    qr_code = base64.b64encode(
+        buffer.getvalue()
+    ).decode("utf-8")
+
     return render_template(
         "booking/confirmation.html",
-        booking=booking
+        booking=booking,
+        qr_code=qr_code
     )
 
 @app.route("/ticket/<booking_id>")
@@ -591,9 +750,407 @@ def ticket(booking_id):
         flash("Ticket not found.", "error")
         return redirect(url_for("booking_history"))
 
+    # Create QR code data
+    qr_data = f"""
+SkyBook Flight Ticket
+
+PNR: {booking['pnr']}
+Flight: {booking['flight_number']}
+Date: {booking.get('flight_date', '')}
+From: {booking['from']} ({booking['from_code']})
+To: {booking['to']} ({booking['to_code']})
+Departure: {booking['departure']}
+Arrival: {booking['arrival']}
+Passenger: {booking['passenger']['name']}
+Seat: {booking['seat']}
+Status: {booking['booking_status']}
+"""
+
+    # Generate QR code
+    qr = qrcode.QRCode(
+        version=1,
+        box_size=4,
+        border=2
+    )
+
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+
+    qr_image = qr.make_image()
+
+    # Convert QR image to Base64
+    buffer = io.BytesIO()
+    qr_image.save(buffer, format="PNG")
+
+    qr_code = base64.b64encode(
+        buffer.getvalue()
+    ).decode("utf-8")
+
+    # Add formatted date if needed
+    if booking.get("flight_date"):
+
+        try:
+            date_obj = datetime.strptime(
+                booking["flight_date"],
+                "%Y-%m-%d"
+            )
+
+            booking["formatted_date"] = date_obj.strftime(
+                "%d %B %Y"
+            )
+
+        except ValueError:
+
+            booking["formatted_date"] = booking["flight_date"]
+
+    else:
+
+        booking["formatted_date"] = "Date unavailable"
+
+    if booking.get("flight_date"):
+
+        try:
+            date_obj = datetime.strptime(
+                booking["flight_date"],
+                "%Y-%m-%d"
+            )
+
+            booking["formatted_date"] = date_obj.strftime(
+                "%d %B %Y"
+            )
+
+        except ValueError:
+
+            booking["formatted_date"] = booking["flight_date"]
+
+    else:
+
+        booking["formatted_date"] = "Date unavailable"
+
     return render_template(
         "booking/confirmation.html",
-        booking=booking
+        booking=booking,
+        qr_code=qr_code
+    )
+
+@app.route("/download-ticket/<booking_id>")
+def download_ticket(booking_id):
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    try:
+        booking = bookings_collection.find_one({
+            "_id": ObjectId(booking_id),
+            "user_id": session["user_id"]
+        })
+    except Exception:
+        booking = None
+
+    if not booking:
+        flash("Ticket not found.", "error")
+        return redirect(url_for("booking_history"))
+
+    buffer = io.BytesIO()
+
+    pdf = canvas.Canvas(buffer, pagesize=(595, 842))
+
+    width = 595
+    height = 842
+
+    # ==========================================
+    # HEADER
+    # ==========================================
+
+    pdf.setFillColorRGB(0.04, 0.05, 0.08)
+    pdf.rect(0, 0, width, height, fill=1, stroke=0)
+
+    pdf.setFillColorRGB(1, 1, 1)
+    pdf.setFont("Helvetica-Bold", 25)
+    pdf.drawString(45, 790, "SKYBOOK")
+
+    pdf.setFont("Helvetica", 9)
+    pdf.setFillColorRGB(0.65, 0.68, 0.72)
+    pdf.drawString(47, 773, "YOUR JOURNEY. OUR PRIORITY.")
+
+    # Status
+    pdf.setFillColorRGB(0.15, 0.75, 0.45)
+    pdf.roundRect(430, 775, 115, 25, 12, fill=1, stroke=0)
+
+    pdf.setFillColorRGB(1, 1, 1)
+    pdf.setFont("Helvetica-Bold", 9)
+    pdf.drawCentredString(
+        487,
+        784,
+        booking["booking_status"]
+    )
+
+    # ==========================================
+    # MAIN TICKET
+    # ==========================================
+
+    pdf.setFillColorRGB(0.98, 0.98, 0.98)
+    pdf.roundRect(35, 175, 525, 565, 18, fill=1, stroke=0)
+
+    # ==========================================
+    # FLIGHT HEADER
+    # ==========================================
+
+    pdf.setFillColorRGB(0.08, 0.09, 0.13)
+    pdf.setFont("Helvetica-Bold", 16)
+
+    pdf.drawString(
+        60,
+        700,
+        booking["flight_number"]
+    )
+
+    pdf.setFont("Helvetica", 10)
+    pdf.setFillColorRGB(0.40, 0.42, 0.46)
+
+    pdf.drawString(
+        60,
+        682,
+        booking["airline"]
+    )
+
+    pdf.drawRightString(
+        535,
+        700,
+        booking.get("flight_date", "")
+    )
+
+    # Divider
+    pdf.setStrokeColorRGB(0.85, 0.85, 0.87)
+    pdf.line(60, 660, 535, 660)
+
+    # ==========================================
+    # ROUTE
+    # ==========================================
+
+    pdf.setFillColorRGB(0.08, 0.09, 0.13)
+
+    # FROM
+    pdf.setFont("Helvetica-Bold", 30)
+    pdf.drawString(
+        65,
+        610,
+        booking["from_code"]
+    )
+
+    pdf.setFont("Helvetica-Bold", 17)
+    pdf.drawString(
+        65,
+        580,
+        booking["departure"]
+    )
+
+    pdf.setFont("Helvetica", 9)
+    pdf.setFillColorRGB(0.40, 0.42, 0.46)
+
+    pdf.drawString(
+        65,
+        562,
+        booking["from"]
+    )
+
+    # Arrow
+    pdf.setFillColorRGB(0.20, 0.21, 0.25)
+    pdf.setFont("Helvetica-Bold", 20)
+
+    pdf.drawCentredString(
+        297,
+        595,
+        "--------->"
+    )
+
+    # TO
+    pdf.setFillColorRGB(0.08, 0.09, 0.13)
+
+    pdf.setFont("Helvetica-Bold", 30)
+    pdf.drawRightString(
+        530,
+        610,
+        booking["to_code"]
+    )
+
+    pdf.setFont("Helvetica-Bold", 17)
+    pdf.drawRightString(
+        530,
+        580,
+        booking["arrival"]
+    )
+
+    pdf.setFont("Helvetica", 9)
+    pdf.setFillColorRGB(0.40, 0.42, 0.46)
+
+    pdf.drawRightString(
+        530,
+        562,
+        booking["to"]
+    )
+
+    # ==========================================
+    # PASSENGER SECTION
+    # ==========================================
+
+    pdf.setStrokeColorRGB(0.85, 0.85, 0.87)
+    pdf.line(60, 530, 535, 530)
+
+    pdf.setFillColorRGB(0.40, 0.42, 0.46)
+    pdf.setFont("Helvetica-Bold", 8)
+
+    pdf.drawString(65, 505, "PASSENGER")
+    pdf.drawString(300, 505, "SEAT")
+
+    pdf.setFillColorRGB(0.08, 0.09, 0.13)
+    pdf.setFont("Helvetica-Bold", 13)
+
+    pdf.drawString(
+        65,
+        483,
+        booking["passenger"]["name"]
+    )
+
+    pdf.drawString(
+        300,
+        483,
+        booking["seat"]
+    )
+
+    # ==========================================
+    # BOOKING REFERENCE
+    # ==========================================
+
+    pdf.setFillColorRGB(0.40, 0.42, 0.46)
+    pdf.setFont("Helvetica-Bold", 8)
+
+    pdf.drawString(
+        65,
+        445,
+        "BOOKING REFERENCE"
+    )
+
+    pdf.setFillColorRGB(0.08, 0.09, 0.13)
+    pdf.setFont("Helvetica-Bold", 18)
+
+    pdf.drawString(
+        65,
+        420,
+        booking["pnr"]
+    )
+
+    # ==========================================
+    # PAYMENT
+    # ==========================================
+
+    pdf.setFillColorRGB(0.40, 0.42, 0.46)
+    pdf.setFont("Helvetica-Bold", 8)
+
+    pdf.drawString(
+        300,
+        445,
+        "PAYMENT"
+    )
+
+    pdf.setFillColorRGB(0.08, 0.09, 0.13)
+    pdf.setFont("Helvetica-Bold", 11)
+
+    pdf.drawString(
+        300,
+        420,
+        booking["payment_status"]
+    )
+
+    # ==========================================
+    # FARE
+    # ==========================================
+
+    pdf.setStrokeColorRGB(0.85, 0.85, 0.87)
+    pdf.line(60, 390, 535, 390)
+
+    pdf.setFillColorRGB(0.40, 0.42, 0.46)
+    pdf.setFont("Helvetica", 9)
+
+    pdf.drawString(
+        65,
+        365,
+        "Base Fare"
+    )
+
+    pdf.drawRightString(
+        530,
+        365,
+        f"Rs. {booking['base_fare']:,}"
+    )
+
+    pdf.drawString(
+        65,
+        342,
+        "Taxes & Fees"
+    )
+
+    pdf.drawRightString(
+        530,
+        342,
+        f"Rs. {booking['taxes']:,}"
+    )
+
+    pdf.setStrokeColorRGB(0.85, 0.85, 0.87)
+    pdf.line(65, 325, 530, 325)
+
+    pdf.setFillColorRGB(0.08, 0.09, 0.13)
+    pdf.setFont("Helvetica-Bold", 14)
+
+    pdf.drawString(
+        65,
+        298,
+        "TOTAL PAID"
+    )
+
+    pdf.drawRightString(
+        530,
+        298,
+        f"Rs. {booking['total']:,}"
+    )
+
+    # ==========================================
+    # FOOTER
+    # ==========================================
+
+    pdf.setFillColorRGB(0.40, 0.42, 0.46)
+    pdf.setFont("Helvetica", 8)
+
+    pdf.drawCentredString(
+        297,
+        210,
+        "Please carry a valid government ID while travelling."
+    )
+
+    pdf.drawCentredString(
+        297,
+        195,
+        "Thank you for flying with SkyBook."
+    )
+
+    pdf.setFillColorRGB(1, 1, 1)
+    pdf.setFont("Helvetica-Bold", 9)
+
+    pdf.drawCentredString(
+        297,
+        135,
+        "SKYBOOK • DIGITAL FLIGHT TICKET"
+    )
+
+    pdf.save()
+
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"SkyBook_Ticket_{booking['pnr']}.pdf",
+        mimetype="application/pdf"
     )
 
 @app.route("/booking-history")
@@ -620,19 +1177,36 @@ def booking_history():
 
         status = booking.get("booking_status", "CONFIRMED")
 
-        # Cancelled bookings
+        # -----------------------------------
+        # CANCELLED BOOKINGS
+        # -----------------------------------
+
         if status == "CANCELLED":
             cancelled.append(booking)
             continue
 
-        # Get flight date
-        flight = flights_collection.find_one({
-            "_id": booking["flight_id"]
-        })
+        # -----------------------------------
+        # GET FLIGHT DATE
+        # -----------------------------------
 
-        if flight and flight.get("flight_date"):
+        flight_date = booking.get("flight_date")
 
-            flight_date = flight["flight_date"]
+        # If booking doesn't contain flight_date,
+        # try getting it from the flight collection
+        if not flight_date:
+
+            flight = flights_collection.find_one({
+                "_id": booking["flight_id"]
+            })
+
+            if flight:
+                flight_date = flight.get("flight_date")
+
+        # -----------------------------------
+        # UPCOMING / COMPLETED
+        # -----------------------------------
+
+        if flight_date:
 
             if flight_date < today:
                 completed.append(booking)
@@ -640,13 +1214,18 @@ def booking_history():
                 upcoming.append(booking)
 
         else:
-            # If flight date is unavailable,
-            # keep it in upcoming
+
             upcoming.append(booking)
 
-        for booking in upcoming + completed + cancelled:
+    # -----------------------------------
+    # FORMAT DATES
+    # -----------------------------------
 
-            if booking.get("flight_date"):
+    for booking in upcoming + completed + cancelled:
+
+        if booking.get("flight_date"):
+
+            try:
                 date_obj = datetime.strptime(
                     booking["flight_date"],
                     "%Y-%m-%d"
@@ -656,12 +1235,93 @@ def booking_history():
                     "%d %B %Y"
                 )
 
+            except ValueError:
+
+                booking["formatted_date"] = booking["flight_date"]
+
+        else:
+
+            booking["formatted_date"] = "Date unavailable"
+
     return render_template(
         "profile/booking_history.html",
         upcoming=upcoming,
         completed=completed,
         cancelled=cancelled
+    ) 
+
+
+@app.route("/my-bookings")
+def my_bookings():
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    from datetime import datetime
+
+    bookings = list(
+        bookings_collection.find({
+            "user_id": session["user_id"]
+        }).sort("_id", -1)
     )
+
+    upcoming = []
+
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    for booking in bookings:
+
+        status = booking.get("booking_status", "CONFIRMED")
+
+        # Skip cancelled bookings
+        if status == "CANCELLED":
+            continue
+
+        flight_date = booking.get("flight_date")
+
+        # If flight date is missing, get it from flights collection
+        if not flight_date:
+
+            flight = flights_collection.find_one({
+                "_id": booking["flight_id"]
+            })
+
+            if flight:
+                flight_date = flight.get("flight_date")
+
+        # Only upcoming flights
+        if flight_date and flight_date >= today:
+            upcoming.append(booking)
+
+    # Format dates
+    for booking in upcoming:
+
+        if booking.get("flight_date"):
+
+            try:
+                date_obj = datetime.strptime(
+                    booking["flight_date"],
+                    "%Y-%m-%d"
+                )
+
+                booking["formatted_date"] = date_obj.strftime(
+                    "%d %B %Y"
+                )
+
+            except ValueError:
+
+                booking["formatted_date"] = booking["flight_date"]
+
+        else:
+
+            booking["formatted_date"] = "Date unavailable"
+
+    return render_template(
+        "profile/my_bookings.html",
+        bookings=upcoming
+    )
+
+
 @app.route("/profile")
 def profile():
 
@@ -792,9 +1452,255 @@ def cancel_booking(booking_id):
 
     return redirect(url_for("booking_history"))
 
-print("\nREGISTERED ROUTES:")
-for rule in app.url_map.iter_rules():
-    print(rule, "->", rule.endpoint)
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+
+    if request.method == "POST":
+
+        email = request.form.get("email", "").strip().lower()
+
+        if not email:
+            flash("Please enter your email address.", "error")
+            return redirect(url_for("forgot_password"))
+
+        user = users_collection.find_one({
+            "email": email
+        })
+
+        if not user:
+            flash("No account found with this email address.", "error")
+            return redirect(url_for("forgot_password"))
+
+        # Generate 6-digit reset OTP
+        otp = str(random.randint(100000, 999999))
+
+        session["reset_otp"] = otp
+        session["reset_email"] = email
+        session["reset_otp_expiry"] = (
+            datetime.now() + timedelta(minutes=5)
+        ).timestamp()
+
+        from utils.email import send_reset_otp_email
+
+        try:
+            send_reset_otp_email(email, otp)
+
+        except Exception as e:
+            print("RESET OTP EMAIL ERROR:", e)
+
+            session.pop("reset_otp", None)
+            session.pop("reset_email", None)
+            session.pop("reset_otp_expiry", None)
+
+            flash(
+                "Unable to send verification email. Please try again.",
+                "error"
+            )
+
+            return redirect(url_for("forgot_password"))
+
+        flash(
+            "Password reset OTP sent to your email.",
+            "success"
+        )
+
+        return redirect(url_for("reset_password"))
+
+    return render_template("auth/forgot_password.html") 
+
+@app.route("/reset-password", methods=["GET", "POST"])
+def reset_password():
+
+    if "reset_otp" not in session or "reset_email" not in session:
+        flash(
+            "No password reset request found. Please try again.",
+            "error"
+        )
+        return redirect(url_for("forgot_password"))
+
+    if request.method == "POST":
+
+        entered_otp = request.form.get("otp", "").strip()
+        new_password = request.form.get("password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        stored_otp = session.get("reset_otp")
+        expiry = session.get("reset_otp_expiry")
+        email = session.get("reset_email")
+
+        # Check OTP expiry
+        if not expiry or datetime.now().timestamp() > expiry:
+
+            session.pop("reset_otp", None)
+            session.pop("reset_email", None)
+            session.pop("reset_otp_expiry", None)
+
+            flash(
+                "Reset OTP has expired. Please request a new one.",
+                "error"
+            )
+
+            return redirect(url_for("forgot_password"))
+
+        # Check OTP
+        if entered_otp != stored_otp:
+
+            flash(
+                "Invalid OTP. Please try again.",
+                "error"
+            )
+
+            return redirect(url_for("reset_password"))
+
+        # Check password length
+        if len(new_password) < 6:
+
+            flash(
+                "Password must contain at least 6 characters.",
+                "error"
+            )
+
+            return redirect(url_for("reset_password"))
+
+        # Check password confirmation
+        if new_password != confirm_password:
+
+            flash(
+                "Passwords do not match.",
+                "error"
+            )
+
+            return redirect(url_for("reset_password"))
+
+        # Hash the new password
+        password_hash = generate_password_hash(new_password)
+
+        # Update password in MongoDB
+        users_collection.update_one(
+            {
+                "email": email
+            },
+            {
+                "$set": {
+                    "password": password_hash
+                }
+            }
+        )
+
+        # Clear reset session
+        session.pop("reset_otp", None)
+        session.pop("reset_email", None)
+        session.pop("reset_otp_expiry", None)
+
+        flash(
+            "Password reset successfully! You can now login.",
+            "success"
+        )
+
+        return redirect(url_for("login"))
+
+    return render_template("auth/reset_password.html")
+
+@app.route("/change-password", methods=["GET", "POST"])
+def change_password():
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    try:
+        user = users_collection.find_one({
+            "_id": ObjectId(session["user_id"])
+        })
+    except Exception:
+        user = None
+
+    if not user:
+        session.clear()
+        flash("Your account could not be found.", "error")
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+
+        current_password = request.form.get(
+            "current_password",
+            ""
+        )
+
+        new_password = request.form.get(
+            "new_password",
+            ""
+        )
+
+        confirm_password = request.form.get(
+            "confirm_password",
+            ""
+        )
+
+        # Check current password
+        if not check_password_hash(
+            user["password"],
+            current_password
+        ):
+            flash(
+                "Current password is incorrect.",
+                "error"
+            )
+            return redirect(url_for("change_password"))
+
+        # Check password length
+        if len(new_password) < 6:
+            flash(
+                "New password must contain at least 6 characters.",
+                "error"
+            )
+            return redirect(url_for("change_password"))
+
+        # Check confirmation
+        if new_password != confirm_password:
+            flash(
+                "New passwords do not match.",
+                "error"
+            )
+            return redirect(url_for("change_password"))
+
+        # Prevent same password
+        if check_password_hash(
+            user["password"],
+            new_password
+        ):
+            flash(
+                "New password must be different from your current password.",
+                "error"
+            )
+            return redirect(url_for("change_password"))
+
+        # Hash new password
+        new_password_hash = generate_password_hash(
+            new_password
+        )
+
+        # Update MongoDB
+        users_collection.update_one(
+            {
+                "_id": ObjectId(session["user_id"])
+            },
+            {
+                "$set": {
+                    "password": new_password_hash
+                }
+            }
+        )
+
+        flash(
+            "Password changed successfully!",
+            "success"
+        )
+
+        return redirect(url_for("profile"))
+
+    return render_template(
+        "profile/change_password.html"
+    )
 
 if __name__ == "__main__":
 
