@@ -7,6 +7,7 @@ from utils.email import mail
 import random
 import qrcode
 import io
+import os
 from PIL import Image
 import base64
 from reportlab.pdfgen import canvas
@@ -1867,6 +1868,7 @@ def change_password():
         "profile/change_password.html"
     )
 
-if __name__ == "__main__":
 
-    app.run(debug=True)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
