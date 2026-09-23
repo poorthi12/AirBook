@@ -18,7 +18,20 @@
             Start your journey with SkyBook
         </p>
 
-        <form method="POST">
+        <!-- Flash messages display -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form id="registerForm" method="POST" action="{{ url_for('register') }}">
 
             <div class="input-group">
                 <label>Full Name</label>
@@ -53,6 +66,7 @@
                     type="password"
                     name="password"
                     placeholder="Create a password"
+                    minlength="6"
                     required>
             </div>
 
@@ -62,10 +76,11 @@
                     type="password"
                     name="confirm_password"
                     placeholder="Confirm your password"
+                    minlength="6"
                     required>
             </div>
 
-            <button type="submit" class="login-btn">
+            <button type="submit" id="registerSubmitBtn" class="login-btn">
                 CREATE ACCOUNT
             </button>
 
@@ -73,22 +88,28 @@
         
         <script>
         document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("registerForm");
+            const submitBtn = document.getElementById("registerSubmitBtn");
 
-            const form = document.querySelector(".auth-form");
-            const button = form?.querySelector("button[type='submit']");
+            if (!form || !submitBtn) return;
 
-            if (!form || !button) return;
+            form.addEventListener("submit", function (e) {
+                // Ensure HTML5 field validations pass before submitting
+                if (!form.checkValidity()) {
+                    return;
+                }
 
-            button.addEventListener("click", function (event) {
-                console.log("CREATE ACCOUNT CLICKED");
+                // Prevent multiple clicks while the server handles registration
+                if (submitBtn.disabled) {
+                    e.preventDefault();
+                    return;
+                }
 
-                // Prevent other click handlers from interfering
-                event.preventDefault();
-
-                // Directly submit the form to Flask
-                HTMLFormElement.prototype.submit.call(form);
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = "0.7";
+                submitBtn.style.cursor = "not-allowed";
+                submitBtn.innerText = "Creating Account...";
             });
-
         });
         </script>
 
