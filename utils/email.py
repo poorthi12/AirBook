@@ -1,23 +1,22 @@
 import os
+import resend
 
-from flask import current_app
-from flask_mail import Mail, Message
+from flask_mail import Mail
 
-# Keep this so your existing app.py does not break.
+# Keep this so existing app.py does not break
 mail = Mail()
 
-# Get Resend API key from environment variable
-RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+# Resend configuration
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "").strip()
 
-# Email address that Resend will use as sender
 RESEND_FROM_EMAIL = os.getenv(
     "RESEND_FROM_EMAIL",
     "onboarding@resend.dev"
-)
+).strip()
 
 
 def is_mail_configured():
-    return bool((RESEND_API_KEY and str(RESEND_API_KEY).strip()) or (os.getenv("MAIL_USERNAME") and os.getenv("MAIL_PASSWORD")))
+    return bool(RESEND_API_KEY)
 
 
 def _build_otp_html(title, message, otp):
@@ -74,83 +73,63 @@ def _build_otp_html(title, message, otp):
     """
 
 
-def _send_via_smtp(subject, recipient, html_body):
-    if not os.getenv("MAIL_USERNAME") or not os.getenv("MAIL_PASSWORD"):
+def send_otp_email(recipient, otp):
+
+    if not RESEND_API_KEY:
+        print("RESEND_API_KEY NOT SET")
         return False
 
     try:
-        msg = Message(
-            subject=subject,
-            recipients=[recipient],
-            html=html_body,
-            sender=os.getenv("MAIL_DEFAULT_SENDER") or os.getenv("MAIL_USERNAME")
-        )
+        resend.api_key = RESEND_API_KEY
 
-        with current_app.app_context():
-            mail.send(msg)
+        params = {
+            "from": RESEND_FROM_EMAIL,
+            "to": [recipient],
+            "subject": "AirBook - Email Verification Code",
+            "html": _build_otp_html(
+                "AirBook Email Verification",
+                "Thank you for creating your AirBook account. Your email verification code is:",
+                otp
+            )
+        }
 
-        print("SMTP OTP EMAIL SENT TO:", recipient)
+        response = resend.Emails.send(params)
+
+        print("OTP EMAIL SENT VIA RESEND:", response)
+
         return True
+
     except Exception as exc:
-        print("SMTP EMAIL ERROR:", exc)
+        print("RESEND OTP EMAIL ERROR:", exc)
         return False
 
 
-def send_otp_email(recipient, otp):
-    subject = "AirBook - Email Verification Code"
-    html = _build_otp_html(
-        "AirBook Email Verification",
-        "Thank you for creating your AirBook account. Your email verification code is:",
-        otp,
-    )
-
-    if RESEND_API_KEY:
-        try:
-            import resend
-
-            resend.api_key = RESEND_API_KEY
-
-            params = {
-                "from": RESEND_FROM_EMAIL,
-                "to": [recipient],
-                "subject": subject,
-                "html": html,
-            }
-
-            response = resend.Emails.send(params)
-            print("OTP EMAIL SENT VIA RESEND:", response)
-            return True
-        except Exception as exc:
-            print("RESEND OTP EMAIL ERROR:", exc)
-
-    return _send_via_smtp(subject, recipient, html)
-
-
 def send_reset_otp_email(recipient, otp):
-    subject = "AirBook - Password Reset Code"
-    html = _build_otp_html(
-        "AirBook Password Reset",
-        "We received a request to reset your AirBook password. Your password reset code is:",
-        otp,
-    )
 
-    if RESEND_API_KEY:
-        try:
-            import resend
+    if not RESEND_API_KEY:
+        print("RESEND_API_KEY NOT SET")
+        return False
 
-            resend.api_key = RESEND_API_KEY
+    try:
+        resend.api_key = RESEND_API_KEY
 
-            params = {
-                "from": RESEND_FROM_EMAIL,
-                "to": [recipient],
-                "subject": subject,
-                "html": html,
-            }
+        params = {
+            "from": RESEND_FROM_EMAIL,
+            "to": [recipient],
+            "subject": "AirBook - Password Reset Code",
+            "html": _build_otp_html(
+                "AirBook Password Reset",
+                "We received a request to reset your AirBook password. Your password reset code is:",
+                otp
+            )
+        }
 
-            response = resend.Emails.send(params)
-            print("RESET OTP EMAIL SENT VIA RESEND:", response)
-            return True
-        except Exception as exc:
-            print("RESEND RESET EMAIL ERROR:", exc)
+        response = resend.Emails.send(params)
 
-    return _send_via_smtp(subject, recipient, html)
+        print("RESET OTP EMAIL SENT VIA RESEND:", response)
+
+        return True
+
+    except Exception as exc:
+        print("RESEND RESET EMAIL ERROR:", exc)
+        return False
