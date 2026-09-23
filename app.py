@@ -231,28 +231,42 @@ def register():
             flash("An account with this email already exists.", "error")
             return redirect(url_for("register"))
 
-        password_hash = generate_password_hash(password)
-
-        user = {
+        otp = str(random.randint(100000, 999999))
+        session["registration_otp"] = otp
+        session["registration_data"] = {
             "name": name,
             "email": email,
             "phone": phone,
-            "password": password_hash,
-            "verified": True
+            "password": password
         }
+        session["otp_expiry"] = (datetime.now() + timedelta(minutes=5)).timestamp()
 
-        users_collection.insert_one(user)
+        from utils.email import send_otp_email
 
-        session.pop("registration_otp", None)
-        session.pop("registration_data", None)
-        session.pop("otp_expiry", None)
+        email_sent = send_otp_email(email, otp)
 
-        flash(
-            "Account created successfully. You can now login.",
-            "success"
-        )
+        if not email_sent:
+            session.pop("registration_otp", None)
+            session.pop("registration_data", None)
+            session.pop("otp_expiry", None)
 
-        return redirect(url_for("login"))
+            password_hash = generate_password_hash(password)
+            users_collection.insert_one({
+                "name": name,
+                "email": email,
+                "phone": phone,
+                "password": password_hash,
+                "verified": True
+            })
+
+            flash(
+                "Account created successfully. Email verification is unavailable right now, so verification was skipped.",
+                "warning"
+            )
+            return redirect(url_for("login"))
+
+        flash("A 6-digit verification code has been sent to your email.", "success")
+        return redirect(url_for("verify"))
 
     return render_template("auth/register.html")
 
