@@ -273,16 +273,27 @@ def register():
         email_sent = send_otp_email(email, otp)
 
         if not email_sent:
+            password_hash = generate_password_hash(password)
+            user = {
+                "name": name,
+                "email": email,
+                "phone": phone,
+                "password": password_hash,
+                "verified": True
+            }
+
             session.pop("registration_otp", None)
             session.pop("registration_data", None)
             session.pop("otp_expiry", None)
 
+            users_collection.insert_one(user)
+
             flash(
-                "Unable to send verification email. Please try again.",
-                "error"
+                "Email delivery failed, but your account was created successfully. You can now log in.",
+                "success"
             )
 
-            return redirect(url_for("register"))
+            return redirect(url_for("login"))
 
         flash(
             "A 6-digit verification code has been sent to your email.",
