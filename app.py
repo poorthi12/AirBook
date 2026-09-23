@@ -200,6 +200,7 @@ def logout():
 
     return redirect(url_for("login"))
 
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
@@ -233,9 +234,21 @@ def register():
 
         from utils.email import is_mail_configured, send_otp_email
 
+        # Check email configuration
         if not is_mail_configured():
+            print("========== EMAIL CONFIG ERROR ==========")
+            print("MAIL_SERVER:", app.config.get("MAIL_SERVER"))
+            print("MAIL_PORT:", app.config.get("MAIL_PORT"))
+            print("MAIL_USE_TLS:", app.config.get("MAIL_USE_TLS"))
+            print("MAIL_USERNAME:", app.config.get("MAIL_USERNAME"))
+            print(
+                "MAIL_PASSWORD SET:",
+                bool(app.config.get("MAIL_PASSWORD"))
+            )
+            print("========================================")
+
             flash(
-                "Email verification is not configured on this server. Please contact support or configure Resend in Render.",
+                "Email verification is not configured on this server.",
                 "error"
             )
             return redirect(url_for("register"))
@@ -243,8 +256,21 @@ def register():
         # Generate OTP
         otp = str(random.randint(100000, 999999))
 
+        print("========== REGISTER DEBUG ==========")
+        print("EMAIL:", email)
+        print("OTP GENERATED:", otp)
+        print("MAIL SERVER:", app.config.get("MAIL_SERVER"))
+        print("MAIL PORT:", app.config.get("MAIL_PORT"))
+        print("MAIL TLS:", app.config.get("MAIL_USE_TLS"))
+        print("MAIL USERNAME:", app.config.get("MAIL_USERNAME"))
+        print(
+            "MAIL PASSWORD SET:",
+            bool(app.config.get("MAIL_PASSWORD"))
+        )
+
         # Store registration data temporarily
         session["registration_otp"] = otp
+
         session["registration_data"] = {
             "name": name,
             "email": email,
@@ -258,10 +284,24 @@ def register():
         ).timestamp()
 
         try:
+
+            print("ATTEMPTING TO SEND OTP...")
+
             email_sent = send_otp_email(email, otp)
 
+            print(
+                "OTP EMAIL FUNCTION RETURNED:",
+                email_sent
+            )
+
         except Exception as e:
-            print("OTP EMAIL ERROR:", repr(e))
+
+            print(
+                "========== OTP EMAIL ERROR =========="
+            )
+            print("ERROR TYPE:", type(e).__name__)
+            print("ERROR:", repr(e))
+            print("====================================")
 
             session.pop("registration_otp", None)
             session.pop("registration_data", None)
@@ -274,7 +314,10 @@ def register():
 
             return redirect(url_for("register"))
 
+        print("========== END REGISTER DEBUG ==========")
+
         if not email_sent:
+
             session.pop("registration_otp", None)
             session.pop("registration_data", None)
             session.pop("otp_expiry", None)
