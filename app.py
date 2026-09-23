@@ -257,7 +257,22 @@ def register():
             datetime.now() + timedelta(minutes=5)
         ).timestamp()
 
-        email_sent = send_otp_email(email, otp)
+        try:
+            email_sent = send_otp_email(email, otp)
+
+        except Exception as e:
+            print("OTP EMAIL ERROR:", repr(e))
+
+            session.pop("registration_otp", None)
+            session.pop("registration_data", None)
+            session.pop("otp_expiry", None)
+
+            flash(
+                "Unable to send verification email. Please try again.",
+                "error"
+            )
+
+            return redirect(url_for("register"))
 
         if not email_sent:
             session.pop("registration_otp", None)
@@ -265,7 +280,7 @@ def register():
             session.pop("otp_expiry", None)
 
             flash(
-                "Unable to send verification email. Please check your email provider configuration and try again.",
+                "Unable to send verification email. Please try again.",
                 "error"
             )
 
