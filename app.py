@@ -231,6 +231,28 @@ def register():
             flash("An account with this email already exists.", "error")
             return redirect(url_for("register"))
 
+        from utils.email import is_mail_configured, send_otp_email
+
+        # If no mail provider is configured, create the account immediately
+        # instead of hanging the request on a failed OTP email send.
+        if not is_mail_configured():
+            password_hash = generate_password_hash(password)
+            user = {
+                "name": name,
+                "email": email,
+                "phone": phone,
+                "password": password_hash,
+                "verified": True
+            }
+
+            users_collection.insert_one(user)
+
+            flash(
+                "Account created successfully. You can now log in.",
+                "success"
+            )
+            return redirect(url_for("login"))
+
         # Generate OTP
         otp = str(random.randint(100000, 999999))
 
@@ -248,14 +270,9 @@ def register():
             datetime.now() + timedelta(minutes=5)
         ).timestamp()
 
-        # Send OTP using Resend
-        from utils.email import send_otp_email
-
         email_sent = send_otp_email(email, otp)
 
-        # If email sending fails, DO NOT create the account
         if not email_sent:
-
             session.pop("registration_otp", None)
             session.pop("registration_data", None)
             session.pop("otp_expiry", None)
@@ -267,7 +284,6 @@ def register():
 
             return redirect(url_for("register"))
 
-        # Email successfully sent
         flash(
             "A 6-digit verification code has been sent to your email.",
             "success"

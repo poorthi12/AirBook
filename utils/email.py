@@ -17,7 +17,7 @@ RESEND_FROM_EMAIL = os.getenv(
 
 
 def is_mail_configured():
-    return bool(RESEND_API_KEY or os.getenv("MAIL_USERNAME") and os.getenv("MAIL_PASSWORD"))
+    return bool((RESEND_API_KEY and str(RESEND_API_KEY).strip()) or (os.getenv("MAIL_USERNAME") and os.getenv("MAIL_PASSWORD")))
 
 
 def _build_otp_html(title, message, otp):
