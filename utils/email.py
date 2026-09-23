@@ -2,115 +2,80 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import os
 import smtplib
-import socket
 from threading import Thread
-import traceback
-
-# Force IPv4 so Render Linux does not hang on IPv6 blackholes
-_orig_getaddrinfo = socket.getaddrinfo
 
 
-def _getaddrinfo_ipv4(host, port, family=0, type=0, proto=0, flags=0):
-  if host and "gmail.com" in str(host).lower():
-    family = socket.AF_INET
-  return _orig_getaddrinfo(host, port, family, type, proto, flags)
+def _send_gmail_thread(recipient, subject, body):
+  """Sends an email directly through Gmail SMTP over Port 465 SSL."""
+  gmail_user = (os.getenv("MAIL_USERNAME") or "").strip()
+  gmail_pass = (os.getenv("MAIL_PASSWORD") or "").replace(" ", "").strip()
 
-
-socket.getaddrinfo = _getaddrinfo_ipv4
-
-
-def _send_smtp_email(recipient, subject, body):
-  """Sends an email using standard Python smtplib with direct SSL."""
-  mail_user = (os.getenv("MAIL_USERNAME") or "").strip()
-  mail_pass = (os.getenv("MAIL_PASSWORD") or "").replace(" ", "").strip()
-  mail_server = os.getenv("MAIL_SERVER", "smtp.gmail.com")
-  mail_port = int(os.getenv("MAIL_PORT", 465))
-
-  if not mail_user or not mail_pass:
+  if not gmail_user or not gmail_pass:
     print(
-        "[EMAIL WARNING] MAIL_USERNAME or MAIL_PASSWORD missing in"
-        " environment variables.",
+        "[GMAIL ERROR] MAIL_USERNAME or MAIL_PASSWORD missing in Render"
+        " Environment Variables!",
         flush=True,
     )
-    return False
+    return
 
-  msg = MIMEMultipart("alternative")
+  msg = MIMEMultipart()
   msg["Subject"] = subject
-  msg["From"] = f"AirBook <{mail_user}>"
+  msg["From"] = f"AirBook <{gmail_user}>"
   msg["To"] = recipient
   msg.attach(MIMEText(body, "plain"))
 
   try:
-    with smtplib.SMTP_SSL(mail_server, mail_port, timeout=15) as server:
-      server.login(mail_user, mail_pass)
-      server.sendmail(mail_user, [recipient], msg.as_string())
-    print(f"[EMAIL SUCCESS] Email delivered to {recipient}", flush=True)
-    return True
-  except Exception as e:
     print(
-        f"[EMAIL ERROR] Failed to send email to {recipient}: {repr(e)}",
+        f"[GMAIL] Connecting to smtp.gmail.com:465 for {recipient}...",
         flush=True,
     )
-    return False
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=20) as server:
+      server.login(gmail_user, gmail_pass)
+      server.sendmail(gmail_user, [recipient], msg.as_string())
+    print(
+        f"[GMAIL SUCCESS] Email successfully sent to {recipient}!",
+        flush=True,
+    )
+  except Exception as e:
+    print(
+        f"[GMAIL ERROR] Failed to send via Gmail SMTP: {repr(e)}",
+        flush=True,
+    )
 
 
 def send_otp_email(recipient, otp):
-  """Sends the OTP and logs it to Render console for instant access."""
-  # ALWAYS print to Render console so you can see it in real-time
-  print(
-      f"\n==================================================",
-      flush=True,
-  )
-  print(f"[OTP CODE] Verification OTP for {recipient} is: {otp}", flush=True)
-  print(
-      f"==================================================\n",
-      flush=True,
-  )
-
-  subject = "AirBook - Your Verification OTP"
+  """Dispatches the verification OTP via Gmail."""
+  subject = "AirBook - Email Verification OTP"
   body = f"""Hello,
 
-Your AirBook verification code is: {otp}
+Your AirBook verification OTP is: {otp}
 
-This code is valid for 10 minutes.
+This OTP is valid for 10 minutes.
 
-If you did not request this, you can safely ignore this email.
+If you did not create an AirBook account, you can safely ignore this email.
 
 Regards,
 AirBook Team
 """
-  # Send in background thread so the browser never waits
-  t = Thread(target=_send_smtp_email, args=(recipient, subject, body))
+  t = Thread(target=_send_gmail_thread, args=(recipient, subject, body))
   t.daemon = True
   t.start()
   return True
 
 
 def send_reset_otp_email(recipient, otp):
-  """Sends password reset OTP and logs it to Render console."""
-  print(
-      f"\n==================================================",
-      flush=True,
-  )
-  print(
-      f"[RESET OTP] Password Reset OTP for {recipient} is: {otp}", flush=True
-  )
-  print(
-      f"==================================================\n",
-      flush=True,
-  )
-
+  """Dispatches the password reset OTP via Gmail."""
   subject = "AirBook - Password Reset OTP"
   body = f"""Hello,
 
 Your AirBook password reset OTP is: {otp}
 
-This code is valid for 10 minutes.
+This OTP is valid for 10 minutes.
 
 Regards,
 AirBook Team
 """
-  t = Thread(target=_send_smtp_email, args=(recipient, subject, body))
+  t = Thread(target=_send_gmail_thread, args=(recipient, subject, body))
   t.daemon = True
   t.start()
   return True
