@@ -70,6 +70,27 @@
             </button>
 
         </form>
+        
+        <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const form = document.querySelector(".auth-form");
+            const button = form?.querySelector("button[type='submit']");
+
+            if (!form || !button) return;
+
+            button.addEventListener("click", function (event) {
+                console.log("CREATE ACCOUNT CLICKED");
+
+                // Prevent other click handlers from interfering
+                event.preventDefault();
+
+                // Directly submit the form to Flask
+                HTMLFormElement.prototype.submit.call(form);
+            });
+
+        });
+        </script>
 
         <p class="register-text">
             Already have an account?
