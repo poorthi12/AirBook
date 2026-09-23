@@ -1,94 +1,58 @@
 {% extends "base.html" %}
 
-{% block title %}Verify Email - SkyBook{% endblock %}
+{% block title %}Verify Email | SkyBook{% endblock %}
 
 {% block content %}
 
-<div class="auth-page">
+<div class="login-page">
 
-    <div class="auth-card">
+    <div class="login-container">
 
-        <div class="auth-header">
-
-            <div class="auth-logo">
-                ✈
-            </div>
-
-            <div class="auth-eyebrow">
-                SKYBOOK SECURITY
-            </div>
-
-            <h1>Verify Your Email</h1>
-
-            <p>
-                Enter the 6-digit OTP sent to your email address.
-            </p>
-
+        <div class="logo">
+            ✈ SKYBOOK
         </div>
 
+        <h1>Verify Your Email</h1>
+
+        <p class="subtitle">
+            Enter the 6-digit code sent to <strong>{{ email }}</strong>
+        </p>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
-
             {% if messages %}
-
-                <div class="auth-messages">
-
+                <div class="flash-messages">
                     {% for category, message in messages %}
-
-                        <div class="auth-message {{ category }}">
+                        <div class="alert alert-{{ category }}" style="color: #ff4d4f; margin-bottom: 15px; font-weight: bold;">
                             {{ message }}
                         </div>
-
                     {% endfor %}
-
                 </div>
-
             {% endif %}
-
         {% endwith %}
 
+        <form method="POST" action="{{ url_for('verify') }}">
 
-        <form method="POST" class="auth-form">
-
-            <div class="form-group">
-
-                <label for="otp">
-                    Verification OTP
-                </label>
-
+            <div class="input-group">
+                <label>Verification Code</label>
                 <input
                     type="text"
-                    id="otp"
                     name="otp"
                     placeholder="Enter 6-digit OTP"
                     maxlength="6"
-                    pattern="[0-9]{6}"
-                    inputmode="numeric"
-                    autocomplete="one-time-code"
                     required
-                >
-
+                    style="letter-spacing: 4px; font-size: 1.2rem; text-align: center;">
             </div>
 
-
-            <button type="submit" class="auth-submit">
-                VERIFY EMAIL
+            <button type="submit" class="login-btn">
+                VERIFY & CONTINUE
             </button>
 
         </form>
 
-
-        <div class="auth-footer">
-
-            <p>
-                Didn't receive the OTP?
-            </p>
-
-            <a href="{{ url_for('register') }}">
-                Register Again
-            </a>
-
-        </div>
+        <p class="register-text" style="margin-top: 20px;">
+            Didn't receive the email?
+            <a href="{{ url_for('resend_otp') }}" style="font-weight: bold; color: #007bff;">Resend Code</a>
+        </p>
 
     </div>
 
