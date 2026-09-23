@@ -326,6 +326,31 @@ def register():
   return render_template("auth/register.html")
 
 
+# Strip accidental spaces or line breaks from credentials
+raw_pass = os.getenv("MAIL_PASSWORD") or MAIL_PASSWORD or ""
+app.config["MAIL_PASSWORD"] = raw_pass.replace(" ", "").strip()
+raw_user = os.getenv("MAIL_USERNAME") or MAIL_USERNAME or ""
+app.config["MAIL_USERNAME"] = raw_user.strip()
+
+# --- INSTANT EMAIL TEST ROUTE ---
+@app.route("/test-email")
+def test_email():
+  to_email = request.args.get("to") or app.config.get("MAIL_USERNAME")
+  if not to_email:
+    return (
+        jsonify({
+            "error": (
+                "Please provide ?to=your_email@gmail.com in the URL address bar"
+            )
+        }),
+        400,
+    )
+
+  from utils.email import test_smtp_connection
+
+  result = test_smtp_connection(to_email)
+  return jsonify(result)
+
 @app.route("/verify", methods=["GET", "POST"])
 def verify():
 
