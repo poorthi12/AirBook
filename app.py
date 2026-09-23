@@ -233,25 +233,12 @@ def register():
 
         from utils.email import is_mail_configured, send_otp_email
 
-        # If no mail provider is configured, create the account immediately
-        # instead of hanging the request on a failed OTP email send.
         if not is_mail_configured():
-            password_hash = generate_password_hash(password)
-            user = {
-                "name": name,
-                "email": email,
-                "phone": phone,
-                "password": password_hash,
-                "verified": True
-            }
-
-            users_collection.insert_one(user)
-
             flash(
-                "Account created successfully. You can now log in.",
-                "success"
+                "Email verification is not configured on this server. Please contact support or configure Resend in Render.",
+                "error"
             )
-            return redirect(url_for("login"))
+            return redirect(url_for("register"))
 
         # Generate OTP
         otp = str(random.randint(100000, 999999))
@@ -273,27 +260,16 @@ def register():
         email_sent = send_otp_email(email, otp)
 
         if not email_sent:
-            password_hash = generate_password_hash(password)
-            user = {
-                "name": name,
-                "email": email,
-                "phone": phone,
-                "password": password_hash,
-                "verified": True
-            }
-
             session.pop("registration_otp", None)
             session.pop("registration_data", None)
             session.pop("otp_expiry", None)
 
-            users_collection.insert_one(user)
-
             flash(
-                "Email delivery failed, but your account was created successfully. You can now log in.",
-                "success"
+                "Unable to send verification email. Please check your email provider configuration and try again.",
+                "error"
             )
 
-            return redirect(url_for("login"))
+            return redirect(url_for("register"))
 
         flash(
             "A 6-digit verification code has been sent to your email.",
