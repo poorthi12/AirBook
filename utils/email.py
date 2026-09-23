@@ -75,6 +75,12 @@ def _build_otp_html(title, message, otp):
 
 def send_otp_email(recipient, otp):
 
+    print("========== RESEND DEBUG ==========")
+    print("RESEND API KEY EXISTS:", bool(RESEND_API_KEY))
+    print("RESEND API KEY PREFIX:", RESEND_API_KEY[:7] if RESEND_API_KEY else "NONE")
+    print("RESEND FROM EMAIL:", RESEND_FROM_EMAIL)
+    print("RECIPIENT:", recipient)
+
     if not RESEND_API_KEY:
         print("RESEND_API_KEY NOT SET")
         return False
@@ -96,13 +102,16 @@ def send_otp_email(recipient, otp):
         response = resend.Emails.send(params)
 
         print("OTP EMAIL SENT VIA RESEND:", response)
+        print("========== RESEND SUCCESS ==========")
 
         return True
 
     except Exception as exc:
-        print("RESEND OTP EMAIL ERROR:", exc)
-        return False
+        print("========== RESEND ERROR ==========")
+        print("RESEND OTP EMAIL ERROR:", repr(exc))
+        print("========== END RESEND ERROR ==========")
 
+        return False
 
 def send_reset_otp_email(recipient, otp):
 
