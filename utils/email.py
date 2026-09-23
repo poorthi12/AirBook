@@ -77,7 +77,8 @@ def send_otp_email(recipient, otp):
 
     print("========== RESEND DEBUG ==========")
     print("RESEND API KEY EXISTS:", bool(RESEND_API_KEY))
-    print("RESEND API KEY PREFIX:", RESEND_API_KEY[:7] if RESEND_API_KEY else "NONE")
+    print("RESEND API KEY PREFIX:",
+          RESEND_API_KEY[:7] if RESEND_API_KEY else "NONE")
     print("RESEND FROM EMAIL:", RESEND_FROM_EMAIL)
     print("RECIPIENT:", recipient)
 
