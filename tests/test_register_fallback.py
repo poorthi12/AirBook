@@ -94,6 +94,70 @@ def test_multi_passenger_seat_selection_accepts_two_seats(monkeypatch):
         assert session["selected_seats"] == ["12A", "12B"]
 
 
+def test_multi_passenger_payment_keeps_group_total(monkeypatch):
+    flight_id = str(ObjectId())
+    flight = {
+        "_id": ObjectId(flight_id),
+        "flight_number": "AI101",
+        "from": "Delhi",
+        "to": "Mumbai",
+        "from_code": "DEL",
+        "to_code": "BOM",
+        "departure": "10:30",
+        "arrival": "12:30",
+        "flight_date": "2026-10-01",
+        "airline": "Air India",
+        "price": 5000,
+        "available_seats": 20,
+    }
+
+    class FakeBookings:
+        def __init__(self):
+            self.saved = []
+
+        def find_one(self, query):
+            return None
+
+        def insert_one(self, booking):
+            self.saved.append(booking)
+            return type("Inserted", (), {"inserted_id": ObjectId()})()
+
+    fake_bookings = FakeBookings()
+
+    class FakeFlights:
+        def find_one(self, query):
+            return flight
+
+        def update_one(self, query, update):
+            return None
+
+    monkeypatch.setattr(app_module, "flights_collection", FakeFlights())
+    monkeypatch.setattr(app_module, "bookings_collection", fake_bookings)
+
+    with app_module.app.test_client() as client:
+        with client.session_transaction() as session:
+            session["user_id"] = "user-1"
+            session["selected_flight_id"] = flight_id
+            session["selected_seats"] = ["12A", "12B"]
+            session["passengers"] = [
+                {"name": "A", "email": "a@example.com", "phone": "1", "gender": "Male", "dob": "2000-01-01"},
+                {"name": "B", "email": "b@example.com", "phone": "2", "gender": "Female", "dob": "2000-02-02"},
+            ]
+            session["booking_passengers"] = 2
+
+        response = client.post(
+            "/payment",
+            data={"payment_method": "UPI"},
+            follow_redirects=False,
+        )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/booking-confirmation")
+
+    with client.session_transaction() as session:
+        assert session["booking_total"] == 5250 * 2
+
+
 def test_register_rejects_when_otp_email_send_fails(monkeypatch):
     fake_users = FakeUsersCollection()
 

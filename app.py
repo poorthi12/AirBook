@@ -764,6 +764,7 @@ def payment():
     session["booking_id"] = inserted_ids[0]
     session["booking_ids"] = inserted_ids
     session["pnr"] = inserted_ids[0]
+    session["booking_total"] = total
     session["payment_completed"] = True
 
     return redirect(url_for("booking_confirmation"))
@@ -828,8 +829,13 @@ Status: {booking['booking_status']}
   qr_image.save(buffer, format="PNG")
   qr_code = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
+  booking_total = session.get("booking_total", booking.get("total"))
+
   return render_template(
-      "booking/confirmation.html", booking=booking, qr_code=qr_code
+      "booking/confirmation.html",
+      booking=booking,
+      qr_code=qr_code,
+      booking_total=booking_total,
   )
 
 
