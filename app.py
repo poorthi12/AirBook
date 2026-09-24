@@ -266,8 +266,16 @@ def register():
     }
     session["otp_expiry"] = (datetime.now() + timedelta(minutes=10)).timestamp()
 
-    # Dispatch email in background thread
-    email_utils.send_otp_email(email, otp)
+    # Dispatch the OTP email synchronously so we only move to the verify page when it actually sends.
+    if not email_utils.send_otp_email(email, otp):
+      session.pop("registration_otp", None)
+      session.pop("registration_data", None)
+      session.pop("otp_expiry", None)
+      flash(
+          "We could not send the verification code. Please check your email settings and try again.",
+          "error",
+      )
+      return redirect(url_for("register"))
 
     flash("A 6-digit verification code has been sent.", "success")
     return redirect(url_for("verify"))
@@ -344,10 +352,17 @@ def resend_otp():
     return redirect(url_for("register"))
 
   otp = str(random.randint(100000, 999999))
+  if not email_utils.send_otp_email(reg_data["email"], otp):
+    session.pop("registration_otp", None)
+    session.pop("otp_expiry", None)
+    flash(
+        "We could not resend the verification code. Please check your email settings and try again.",
+        "error",
+    )
+    return redirect(url_for("verify"))
+
   session["registration_otp"] = otp
   session["otp_expiry"] = (datetime.now() + timedelta(minutes=10)).timestamp()
-
-  email_utils.send_otp_email(reg_data["email"], otp)
   flash("A fresh verification code has been sent.", "success")
   return redirect(url_for("verify"))
 
@@ -1216,7 +1231,15 @@ def forgot_password():
         datetime.now() + timedelta(minutes=10)
     ).timestamp()
 
-    send_reset_otp_email(email, otp)
+    if not send_reset_otp_email(email, otp):
+      session.pop("reset_otp", None)
+      session.pop("reset_email", None)
+      session.pop("reset_otp_expiry", None)
+      flash(
+          "We could not send the password reset code. Please check your email settings and try again.",
+          "error",
+      )
+      return redirect(url_for("forgot_password"))
 
     flash("Password reset OTP sent to your email.", "success")
     return redirect(url_for("reset_password"))

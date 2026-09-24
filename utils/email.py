@@ -2,7 +2,6 @@ import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from threading import Thread
 
 
 def is_mail_configured():
@@ -26,7 +25,7 @@ def _send_email_thread(recipient, subject, body):
         "[MAIL ERROR] No SMTP credentials found! Set MAIL_USERNAME and MAIL_PASSWORD in your environment.",
         flush=True,
     )
-    return
+    return False
 
   msg = MIMEMultipart()
   msg["Subject"] = subject
@@ -54,11 +53,13 @@ def _send_email_thread(recipient, subject, body):
         f"[SMTP SUCCESS] Email successfully sent to {recipient}!",
         flush=True,
     )
+    return True
   except Exception as e:
     print(
         f"[SMTP ERROR] Failed to send email: {repr(e)}",
         flush=True,
     )
+    return False
 
 
 # Alias for backward compatibility
@@ -79,10 +80,7 @@ If you did not create an AirBook account, you can safely ignore this email.
 Regards,
 AirBook Team
 """
-  t = Thread(target=_send_email_thread, args=(recipient, subject, body))
-  t.daemon = True
-  t.start()
-  return True
+  return _send_email_thread(recipient, subject, body)
 
 
 def send_reset_otp_email(recipient, otp):
@@ -97,7 +95,4 @@ This OTP is valid for 10 minutes.
 Regards,
 AirBook Team
 """
-  t = Thread(target=_send_email_thread, args=(recipient, subject, body))
-  t.daemon = True
-  t.start()
-  return True
+  return _send_email_thread(recipient, subject, body)
