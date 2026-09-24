@@ -5,6 +5,13 @@ import smtplib
 from threading import Thread
 
 
+def is_mail_configured():
+  """Returns True when the app has SMTP credentials to send OTP emails."""
+  gmail_user = (os.getenv("MAIL_USERNAME") or "").strip()
+  gmail_pass = (os.getenv("MAIL_PASSWORD") or "").replace(" ", "").strip()
+  return bool(gmail_user and gmail_pass)
+
+
 def _send_gmail_thread(recipient, subject, body):
   """Sends an email directly through Gmail SMTP over Port 465 SSL."""
   gmail_user = (os.getenv("MAIL_USERNAME") or "").strip()

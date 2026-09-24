@@ -26,7 +26,7 @@ from PIL import Image
 import qrcode
 from reportlab.pdfgen import canvas
 from routes.admin import admin_bp
-from utils.email import send_otp_email, send_reset_otp_email
+import utils.email as email_utils
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -248,6 +248,13 @@ def register():
       flash("An account with this email already exists.", "error")
       return redirect(url_for("register"))
 
+    if not email_utils.is_mail_configured():
+      flash(
+          "Email verification is temporarily unavailable. Please try again later.",
+          "error",
+      )
+      return redirect(url_for("register"))
+
     # Generate fresh 6-digit OTP
     otp = str(random.randint(100000, 999999))
     session["registration_otp"] = otp
@@ -260,7 +267,7 @@ def register():
     session["otp_expiry"] = (datetime.now() + timedelta(minutes=10)).timestamp()
 
     # Dispatch email in background thread
-    send_otp_email(email, otp)
+    email_utils.send_otp_email(email, otp)
 
     flash("A 6-digit verification code has been sent.", "success")
     return redirect(url_for("verify"))
@@ -332,11 +339,15 @@ def resend_otp():
     flash("Session expired. Please register again.", "error")
     return redirect(url_for("register"))
 
+  if not email_utils.is_mail_configured():
+    flash("Email verification is temporarily unavailable. Please try again later.", "error")
+    return redirect(url_for("register"))
+
   otp = str(random.randint(100000, 999999))
   session["registration_otp"] = otp
   session["otp_expiry"] = (datetime.now() + timedelta(minutes=10)).timestamp()
 
-  send_otp_email(reg_data["email"], otp)
+  email_utils.send_otp_email(reg_data["email"], otp)
   flash("A fresh verification code has been sent.", "success")
   return redirect(url_for("verify"))
 
