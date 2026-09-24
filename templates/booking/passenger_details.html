@@ -16,7 +16,7 @@
         <div class="passenger-header">
             <span>PASSENGER INFORMATION</span>
             <h1>Passenger Details</h1>
-            <p>Enter the details of the passenger travelling on this flight.</p>
+            <p>Enter the details of the passengers travelling on this flight.</p>
         </div>
 
         <div class="passenger-layout">
@@ -25,91 +25,95 @@
 
             <div class="passenger-card">
 
-                <h2>Passenger 1</h2>
-
-                <p class="card-subtitle">
-                    Please enter the details exactly as they appear on your ID.
-                </p>
-
                 <form method="POST">
 
-                    <div class="form-grid">
+                    {% for index in range(1, passenger_count + 1) %}
+                    <div style="margin-bottom: 30px; border-bottom: 1px solid #e5e7eb; padding-bottom: 20px;">
+                        <h2>Passenger {{ index }}</h2>
 
-                        <div class="input-group full">
-                            <label>FULL NAME *</label>
+                        <p class="card-subtitle">
+                            Please enter the details exactly as they appear on your ID.
+                        </p>
 
-                            <input
-                                type="text"
-                                name="passenger_name"
-                                placeholder="Enter passenger full name"
-                                required>
+                        <div class="form-grid">
+
+                            <div class="input-group full">
+                                <label>FULL NAME *</label>
+
+                                <input
+                                    type="text"
+                                    name="passenger_name_{{ index }}"
+                                    placeholder="Enter passenger full name"
+                                    required>
+                            </div>
+
+
+                            <div class="input-group">
+                                <label>EMAIL *</label>
+
+                                <input
+                                    type="email"
+                                    name="passenger_email_{{ index }}"
+                                    placeholder="Enter email address"
+                                    required>
+                            </div>
+
+
+                            <div class="input-group">
+                                <label>PHONE *</label>
+
+                                <input
+                                    type="tel"
+                                    name="passenger_phone_{{ index }}"
+                                    placeholder="Enter phone number"
+                                    required>
+                            </div>
+
+
+                            <div class="input-group">
+                                <label>DATE OF BIRTH</label>
+
+                                <input
+                                    type="date"
+                                    name="passenger_dob_{{ index }}">
+                            </div>
+
+
+                            <div class="input-group">
+                                <label>GENDER</label>
+
+                                <select name="passenger_gender_{{ index }}">
+
+                                    <option value="">
+                                        Select gender
+                                    </option>
+
+                                    <option value="Male">
+                                        Male
+                                    </option>
+
+                                    <option value="Female">
+                                        Female
+                                    </option>
+
+                                    <option value="Other">
+                                        Other
+                                    </option>
+
+                                </select>
+
+                            </div>
+
                         </div>
-
-
-                        <div class="input-group">
-                            <label>EMAIL *</label>
-
-                            <input
-                                type="email"
-                                name="passenger_email"
-                                placeholder="Enter email address"
-                                required>
-                        </div>
-
-
-                        <div class="input-group">
-                            <label>PHONE *</label>
-
-                            <input
-                                type="tel"
-                                name="passenger_phone"
-                                placeholder="Enter phone number"
-                                required>
-                        </div>
-
-
-                        <div class="input-group">
-                            <label>DATE OF BIRTH</label>
-
-                            <input
-                                type="date"
-                                name="passenger_dob">
-                        </div>
-
-
-                        <div class="input-group">
-                            <label>GENDER</label>
-
-                            <select name="passenger_gender">
-
-                                <option value="">
-                                    Select gender
-                                </option>
-
-                                <option value="Male">
-                                    Male
-                                </option>
-
-                                <option value="Female">
-                                    Female
-                                </option>
-
-                                <option value="Other">
-                                    Other
-                                </option>
-
-                            </select>
-
-                        </div>
-
                     </div>
+                    {% endfor %}
 
 
                     <div class="selected-seat-box">
 
                         <div>
-                            <span>SELECTED SEAT</span>
-                            <strong>{{ selected_seat }}</strong>
+                            <span>SELECTED SEATS</span>
+                            <strong>{{ selected_seats | join(', ') }}</strong>
                         </div>
 
                         <div>

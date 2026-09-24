@@ -105,12 +105,13 @@
                     <input
                         type="hidden"
                         name="seat"
-                        id="selected-seat">
+                        id="selected-seat"
+                        data-required-count="{{ passenger_count }}">
 
                     <div class="seat-footer">
 
                         <div>
-                            <span>Selected Seat:</span>
+                            <span>Selected Seats:</span>
 
                             <strong id="seat-display">
                                 None
@@ -165,6 +166,19 @@
 const seats = document.querySelectorAll(".seat");
 const selectedSeat = document.getElementById("selected-seat");
 const seatDisplay = document.getElementById("seat-display");
+const requiredCount = Number(selectedSeat.dataset.requiredCount || 1);
+let selectedSeats = [];
+
+function updateSelectionState() {
+    seats.forEach(seatButton => {
+        const seatValue = seatButton.dataset.seat;
+        const alreadySelected = selectedSeats.includes(seatValue);
+        seatButton.classList.toggle("selected", alreadySelected);
+    });
+
+    selectedSeat.value = selectedSeats.join(",");
+    seatDisplay.textContent = selectedSeats.length ? selectedSeats.join(", ") : "None";
+}
 
 seats.forEach(seat => {
 
@@ -174,15 +188,20 @@ seats.forEach(seat => {
             return;
         }
 
-        seats.forEach(s => {
-            s.classList.remove("selected");
-        });
+        const seatValue = this.dataset.seat;
 
-        this.classList.add("selected");
+        if (selectedSeats.includes(seatValue)) {
+            selectedSeats = selectedSeats.filter(s => s !== seatValue);
+            updateSelectionState();
+            return;
+        }
 
-        selectedSeat.value = this.dataset.seat;
+        if (selectedSeats.length >= requiredCount) {
+            selectedSeats.shift();
+        }
 
-        seatDisplay.textContent = this.dataset.seat;
+        selectedSeats.push(seatValue);
+        updateSelectionState();
 
     });
 

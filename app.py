@@ -384,7 +384,14 @@ def search_flights():
     from_city = request.form.get("from", "").strip()
     to_city = request.form.get("to", "").strip()
     departure = request.form.get("departure", "").strip()
-    passengers = request.form.get("passengers", "1")
+    passengers = request.form.get("passengers", "1").strip()
+
+    try:
+      passengers = max(1, int(passengers))
+    except (TypeError, ValueError):
+      passengers = 1
+
+    session["booking_passengers"] = passengers
 
     print("FROM:", from_city)
     print("TO:", to_city)
@@ -497,6 +504,8 @@ def seat_selection(flight_id):
     flash("Flight not found.", "error")
     return redirect(url_for("home"))
 
+  passenger_count = max(1, int(session.get("booking_passengers", 1)))
+
   # Get seats already booked for this flight
   booked_seats = bookings_collection.find(
       {"flight_id": flight["_id"], "booking_status": {"$ne": "CANCELLED"}}
@@ -508,28 +517,44 @@ def seat_selection(flight_id):
 
   if request.method == "POST":
 
-    selected_seat = request.form.get("seat")
+    selected_seats_raw = request.form.get("seat", "").strip()
+    selected_seats = [seat.strip() for seat in selected_seats_raw.split(",") if seat.strip()]
 
-    if not selected_seat:
+    if not selected_seats:
       flash("Please select a seat.", "error")
       return redirect(url_for("seat_selection", flight_id=flight_id))
 
-    # Check if selected seat is already booked
-    if selected_seat in booked_seats:
+    if len(selected_seats) != passenger_count:
       flash(
-          f"Seat {selected_seat} is already booked. Please select another seat.",
+          f"Please select {passenger_count} seats for {passenger_count} passenger(s).",
           "error",
       )
-
       return redirect(url_for("seat_selection", flight_id=flight_id))
 
+    duplicate_seats = [seat for seat in selected_seats if selected_seats.count(seat) > 1]
+    if duplicate_seats:
+      flash("Please choose unique seats for each passenger.", "error")
+      return redirect(url_for("seat_selection", flight_id=flight_id))
+
+    for seat in selected_seats:
+      if seat in booked_seats:
+        flash(
+            f"Seat {seat} is already booked. Please select another seat.",
+            "error",
+        )
+        return redirect(url_for("seat_selection", flight_id=flight_id))
+
     session["selected_flight_id"] = flight_id
-    session["selected_seat"] = selected_seat
+    session["selected_seat"] = selected_seats[0]
+    session["selected_seats"] = selected_seats
 
     return redirect(url_for("passenger_details"))
 
   return render_template(
-      "flights/seat_selection.html", flight=flight, booked_seats=booked_seats
+      "flights/seat_selection.html",
+      flight=flight,
+      booked_seats=booked_seats,
+      passenger_count=passenger_count,
   )
 
 
@@ -540,9 +565,9 @@ def passenger_details():
     return redirect(url_for("login"))
 
   flight_id = session.get("selected_flight_id")
-  selected_seat = session.get("selected_seat")
+  selected_seats = session.get("selected_seats") or [session.get("selected_seat")]
 
-  if not flight_id or not selected_seat:
+  if not flight_id or not selected_seats or any(not seat for seat in selected_seats):
     flash("Please select a flight and seat first.", "error")
     return redirect(url_for("home"))
 
@@ -555,32 +580,49 @@ def passenger_details():
     flash("Flight not found.", "error")
     return redirect(url_for("home"))
 
+  passenger_count = max(1, int(session.get("booking_passengers", 1)))
+
   if request.method == "POST":
 
-    passenger_name = request.form.get("passenger_name", "").strip()
-    passenger_email = request.form.get("passenger_email", "").strip().lower()
-    passenger_phone = request.form.get("passenger_phone", "").strip()
-    passenger_gender = request.form.get("passenger_gender", "")
-    passenger_dob = request.form.get("passenger_dob", "")
+    passengers = []
 
-    if not passenger_name or not passenger_email or not passenger_phone:
-      flash("Please fill in all required passenger details.", "error")
-      return redirect(url_for("passenger_details"))
+    for index in range(passenger_count):
+      passenger_number = index + 1
+      passenger_name = request.form.get(f"passenger_name_{passenger_number}", "").strip()
+      passenger_email = request.form.get(f"passenger_email_{passenger_number}", "").strip().lower()
+      passenger_phone = request.form.get(f"passenger_phone_{passenger_number}", "").strip()
+      passenger_gender = request.form.get(f"passenger_gender_{passenger_number}", "")
+      passenger_dob = request.form.get(f"passenger_dob_{passenger_number}", "")
 
-    session["passenger"] = {
-        "name": passenger_name,
-        "email": passenger_email,
-        "phone": passenger_phone,
-        "gender": passenger_gender,
-        "dob": passenger_dob,
-    }
+      if passenger_count == 1:
+        passenger_name = request.form.get("passenger_name", "").strip()
+        passenger_email = request.form.get("passenger_email", "").strip().lower()
+        passenger_phone = request.form.get("passenger_phone", "").strip()
+        passenger_gender = request.form.get("passenger_gender", "")
+        passenger_dob = request.form.get("passenger_dob", "")
+
+      if not passenger_name or not passenger_email or not passenger_phone:
+        flash("Please fill in all required passenger details.", "error")
+        return redirect(url_for("passenger_details"))
+
+      passengers.append({
+          "name": passenger_name,
+          "email": passenger_email,
+          "phone": passenger_phone,
+          "gender": passenger_gender,
+          "dob": passenger_dob,
+      })
+
+    session["passenger"] = passengers[0]
+    session["passengers"] = passengers
 
     return redirect(url_for("booking_review"))
 
   return render_template(
       "booking/passenger_details.html",
       flight=flight,
-      selected_seat=selected_seat,
+      selected_seats=selected_seats,
+      passenger_count=passenger_count,
   )
 
 
@@ -591,10 +633,10 @@ def booking_review():
     return redirect(url_for("login"))
 
   flight_id = session.get("selected_flight_id")
-  selected_seat = session.get("selected_seat")
-  passenger = session.get("passenger")
+  selected_seats = session.get("selected_seats") or [session.get("selected_seat")]
+  passengers = session.get("passengers") or ([session.get("passenger")] if session.get("passenger") else [])
 
-  if not flight_id or not selected_seat or not passenger:
+  if not flight_id or not selected_seats or not passengers:
     flash("Booking information is incomplete.", "error")
     return redirect(url_for("home"))
 
@@ -607,9 +649,10 @@ def booking_review():
     flash("Flight not found.", "error")
     return redirect(url_for("home"))
 
+  passenger_count = len(passengers)
   base_fare = flight["price"]
   taxes = round(base_fare * 0.05)
-  total = base_fare + taxes
+  total = (base_fare + taxes) * passenger_count
 
   if request.method == "POST":
     return redirect(url_for("payment"))
@@ -617,11 +660,12 @@ def booking_review():
   return render_template(
       "booking/review.html",
       flight=flight,
-      passenger=passenger,
-      selected_seat=selected_seat,
+      passengers=passengers,
+      selected_seats=selected_seats,
       base_fare=base_fare,
       taxes=taxes,
       total=total,
+      passenger_count=passenger_count,
   )
 
 
@@ -632,10 +676,10 @@ def payment():
     return redirect(url_for("login"))
 
   flight_id = session.get("selected_flight_id")
-  selected_seat = session.get("selected_seat")
-  passenger = session.get("passenger")
+  selected_seats = session.get("selected_seats") or [session.get("selected_seat")]
+  passengers = session.get("passengers") or ([session.get("passenger")] if session.get("passenger") else [])
 
-  if not flight_id or not selected_seat or not passenger:
+  if not flight_id or not selected_seats or not passengers:
     flash("Booking information is incomplete.", "error")
     return redirect(url_for("home"))
 
@@ -648,9 +692,10 @@ def payment():
     flash("Flight not found.", "error")
     return redirect(url_for("home"))
 
+  passenger_count = len(passengers)
   base_fare = flight["price"]
   taxes = round(base_fare * 0.05)
-  total = base_fare + taxes
+  total = (base_fare + taxes) * passenger_count
 
   if request.method == "POST":
 
@@ -662,64 +707,63 @@ def payment():
       flash("Please select a payment method.", "error")
       return redirect(url_for("payment"))
 
-    if flight.get("available_seats", 0) <= 0:
-      flash("Sorry, this flight is fully booked.", "error")
+    if flight.get("available_seats", 0) < passenger_count:
+      flash("Sorry, this flight does not have enough seats left for your booking.", "error")
       return redirect(url_for("home"))
 
-    existing_booking = bookings_collection.find_one({
-        "flight_id": flight["_id"],
-        "seat": selected_seat,
-        "booking_status": "CONFIRMED",
-    })
-
-    if existing_booking:
-
-      flash(
-          f"Seat {selected_seat} has already been booked. Please select another"
-          " seat.",
-          "error",
-      )
-
-      return redirect(
-          url_for("seat_selection", flight_id=str(flight["_id"]))
-      )
+    for seat in selected_seats:
+      existing_booking = bookings_collection.find_one({
+          "flight_id": flight["_id"],
+          "seat": seat,
+          "booking_status": "CONFIRMED",
+      })
+      if existing_booking:
+        flash(
+            f"Seat {seat} has already been booked. Please select another seat.",
+            "error",
+        )
+        return redirect(
+            url_for("seat_selection", flight_id=str(flight["_id"]))
+        )
 
     import string
 
-    pnr = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
-
-    booking = {
-        "pnr": pnr,
-        "user_id": session["user_id"],
-        "flight_id": flight["_id"],
-        "flight_number": flight["flight_number"],
-        "flight_date": flight["flight_date"],
-        "airline": flight["airline"],
-        "from": flight["from"],
-        "from_code": flight["from_code"],
-        "to": flight["to"],
-        "to_code": flight["to_code"],
-        "departure": flight["departure"],
-        "arrival": flight["arrival"],
-        "passenger": passenger,
-        "seat": selected_seat,
-        "base_fare": base_fare,
-        "taxes": taxes,
-        "total": total,
-        "payment_method": payment_method,
-        "payment_status": "PAID",
-        "booking_status": "CONFIRMED",
-    }
-
-    result = bookings_collection.insert_one(booking)
+    inserted_ids = []
+    for index, passenger in enumerate(passengers):
+      pnr = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+      booking = {
+          "pnr": pnr,
+          "user_id": session["user_id"],
+          "flight_id": flight["_id"],
+          "flight_number": flight["flight_number"],
+          "flight_date": flight["flight_date"],
+          "airline": flight["airline"],
+          "from": flight["from"],
+          "from_code": flight["from_code"],
+          "to": flight["to"],
+          "to_code": flight["to_code"],
+          "departure": flight["departure"],
+          "arrival": flight["arrival"],
+          "passenger": passenger,
+          "seat": selected_seats[index],
+          "base_fare": base_fare,
+          "taxes": taxes,
+          "total": base_fare + taxes,
+          "payment_method": payment_method,
+          "payment_status": "PAID",
+          "booking_status": "CONFIRMED",
+      }
+      result = bookings_collection.insert_one(booking)
+      inserted_ids.append(str(result.inserted_id))
 
     flights_collection.update_one(
-        {"_id": flight["_id"], "available_seats": {"$gt": 0}},
-        {"$inc": {"available_seats": -1}},
+        {"_id": flight["_id"], "available_seats": {"$gte": passenger_count}},
+        {"$inc": {"available_seats": -passenger_count}},
     )
 
-    session["booking_id"] = str(result.inserted_id)
-    session["pnr"] = pnr
+    session["booking_id"] = inserted_ids[0]
+    session["booking_ids"] = inserted_ids
+    session["pnr"] = inserted_ids[0]
     session["payment_completed"] = True
 
     return redirect(url_for("booking_confirmation"))
@@ -727,11 +771,13 @@ def payment():
   return render_template(
       "booking/payment.html",
       flight=flight,
-      selected_seat=selected_seat,
-      passenger=passenger,
+      selected_seats=selected_seats,
+      passenger=passengers[0],
+      passengers=passengers,
       base_fare=base_fare,
       taxes=taxes,
       total=total,
+      passenger_count=passenger_count,
   )
 
 

@@ -72,11 +72,12 @@
 
         <!-- PASSENGER -->
 
+        {% for passenger in passengers %}
         <div class="review-card">
 
             <div class="card-heading">
                 <h2>Passenger Details</h2>
-                <span>PASSENGER 1</span>
+                <span>PASSENGER {{ loop.index }}</span>
             </div>
 
             <div class="passenger-review-grid">
@@ -112,12 +113,13 @@
 
                 <div>
                     <span>SEAT</span>
-                    <strong>{{ selected_seat }}</strong>
+                    <strong>{{ selected_seats[loop.index0] }}</strong>
                 </div>
 
             </div>
 
         </div>
+        {% endfor %}
 
 
         <!-- PRICE -->
