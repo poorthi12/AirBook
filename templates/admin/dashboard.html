@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard | SkyBook{% endblock %}
+{% block title %}Admin Dashboard | AirBook{% endblock %}
 
 {% block content %}
 
@@ -9,7 +9,7 @@
     <div class="admin-header">
 
         <div>
-            <span class="admin-label">SKYBOOK // CONTROL CENTER</span>
+            <span class="admin-label">AIRBOOK // CONTROL CENTER</span>
             <h1>Admin Dashboard</h1>
             <p>Manage your airline booking system.</p>
         </div>
@@ -82,7 +82,7 @@
         <div class="admin-action-card">
             <div class="action-icon">◉</div>
             <h2>Users</h2>
-            <p>View registered SkyBook users.</p>
+            <p>View registered AirBook users.</p>
             <a href="{{ url_for('admin.manage_users') }}">
                 OPEN →
             </a>    

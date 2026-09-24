@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Payment | SkyBook{% endblock %}
+{% block title %}Payment | AirBook{% endblock %}
 
 {% block content %}
 
@@ -34,7 +34,7 @@
                 </p>
 
 
-                <form method="POST">
+                <form method="POST" id="payment-form">
 
 
                     <label class="payment-option">
@@ -66,7 +66,8 @@
                         <input
                             type="radio"
                             name="payment_method"
-                            value="CARD">
+                            value="CARD"
+                            required>
 
                         <div class="payment-option-content">
 
@@ -89,7 +90,8 @@
                         <input
                             type="radio"
                             name="payment_method"
-                            value="NET_BANKING">
+                            value="NET_BANKING"
+                            required>
 
                         <div class="payment-option-content">
 
@@ -112,7 +114,8 @@
                         <input
                             type="radio"
                             name="payment_method"
-                            value="WALLET">
+                            value="WALLET"
+                            required>
 
                         <div class="payment-option-content">
 
@@ -131,8 +134,9 @@
 
 
                     <button
-                        type="submit"
-                        class="pay-btn">
+                        type="button"
+                        class="pay-btn"
+                        id="payBtn">
 
                         PAY ₹{{ "{:,}".format(total) }}
 
@@ -237,5 +241,65 @@
     </div>
 
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const paymentForm = document.getElementById("payment-form");
+        const payButton = document.getElementById("payBtn");
+
+        if (sessionStorage.getItem("airbookPaymentCompleted") === "true") {
+            window.location.replace("/booking-confirmation");
+            return;
+        }
+
+        if (!paymentForm || !payButton) {
+            return;
+        }
+
+        payButton.addEventListener("click", function (event) {
+            const selectedMethod = paymentForm.querySelector("input[name='payment_method']:checked");
+
+            if (!selectedMethod) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const popup = document.createElement("div");
+                popup.className = "custom-alert-backdrop";
+                popup.innerHTML = `
+                    <div class="custom-alert-box" role="alert" aria-live="assertive">
+                        <div class="custom-alert-icon">!</div>
+                        <div class="custom-alert-content">
+                            <div class="custom-alert-title">Payment Required</div>
+                            <div class="custom-alert-message">Please select payment method to continue paying.</div>
+                        </div>
+                        <button type="button" class="custom-alert-close" aria-label="Close">×</button>
+                    </div>
+                `;
+
+                const closeBtn = popup.querySelector(".custom-alert-close");
+                closeBtn.addEventListener("click", function () {
+                    popup.remove();
+                });
+
+                popup.addEventListener("click", function (event) {
+                    if (event.target === popup) {
+                        popup.remove();
+                    }
+                });
+
+                document.body.appendChild(popup);
+                setTimeout(function () {
+                    if (popup.parentNode) {
+                        popup.remove();
+                    }
+                }, 2600);
+                return;
+            }
+
+            sessionStorage.setItem("airbookPaymentCompleted", "true");
+            paymentForm.submit();
+        });
+    });
+</script>
 
 {% endblock %}

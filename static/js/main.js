@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const meta = document.createElement("div");
         meta.className = "upcoming-meta";
         meta.innerHTML = `
-            <span>${flight.airline || "SkyBook Airways"}</span>
+            <span>${flight.airline || "AirBook Airways"}</span>
             <span>${flight.available_seats || 0} seats left</span>
         `;
 
@@ -231,7 +231,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         middle.className = "all-upcoming-middle";
                         middle.innerHTML = `
                             <span>${flight.departure} - ${flight.arrival}</span>
-                            <small>${flight.airline || "SkyBook Airways"}</small>
+                            <small>${flight.airline || "AirBook Airways"}</small>
                         `;
 
                         const right = document.createElement("div");

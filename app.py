@@ -15,6 +15,7 @@ from flask import (
     Flask,
     flash,
     jsonify,
+    make_response,
     redirect,
     render_template,
     request,
@@ -31,6 +32,29 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
+
+
+def get_passenger_name(passenger):
+  if isinstance(passenger, dict):
+    return passenger.get("name") or passenger.get("full_name") or "Passenger"
+  if passenger:
+    return str(passenger)
+  return "Passenger"
+
+
+def normalize_booking_for_display(booking):
+  if not isinstance(booking, dict):
+    return booking
+
+  passenger = booking.get("passenger")
+  if isinstance(passenger, str):
+    booking["passenger"] = {"name": passenger}
+
+  booking.setdefault("from_code", "")
+  booking.setdefault("to_code", "")
+  booking.setdefault("formatted_date", booking.get("flight_date", "Date unavailable"))
+  return booking
+
 
 # Register Blueprints
 app.register_blueprint(admin_bp)
@@ -108,7 +132,8 @@ def upcoming_flights():
   })
 
 
-@app.route("/")
+@app.route("/", endpoint="home")
+@app.route("/home")
 def home():
 
   if "user_id" not in session:
@@ -392,6 +417,16 @@ def search_flights():
       passengers = 1
 
     session["booking_passengers"] = passengers
+    session.pop("payment_completed", None)
+    session.pop("selected_flight_id", None)
+    session.pop("selected_seat", None)
+    session.pop("selected_seats", None)
+    session.pop("passenger", None)
+    session.pop("passengers", None)
+    session.pop("booking_id", None)
+    session.pop("booking_ids", None)
+    session.pop("booking_total", None)
+    session.pop("pnr", None)
 
     print("FROM:", from_city)
     print("TO:", to_city)
@@ -544,6 +579,7 @@ def seat_selection(flight_id):
         )
         return redirect(url_for("seat_selection", flight_id=flight_id))
 
+    session.pop("payment_completed", None)
     session["selected_flight_id"] = flight_id
     session["selected_seat"] = selected_seats[0]
     session["selected_seats"] = selected_seats
@@ -588,18 +624,26 @@ def passenger_details():
 
     for index in range(passenger_count):
       passenger_number = index + 1
-      passenger_name = request.form.get(f"passenger_name_{passenger_number}", "").strip()
-      passenger_email = request.form.get(f"passenger_email_{passenger_number}", "").strip().lower()
-      passenger_phone = request.form.get(f"passenger_phone_{passenger_number}", "").strip()
-      passenger_gender = request.form.get(f"passenger_gender_{passenger_number}", "")
-      passenger_dob = request.form.get(f"passenger_dob_{passenger_number}", "")
-
-      if passenger_count == 1:
-        passenger_name = request.form.get("passenger_name", "").strip()
-        passenger_email = request.form.get("passenger_email", "").strip().lower()
-        passenger_phone = request.form.get("passenger_phone", "").strip()
-        passenger_gender = request.form.get("passenger_gender", "")
-        passenger_dob = request.form.get("passenger_dob", "")
+      passenger_name = (
+          request.form.get(f"passenger_name_{passenger_number}")
+          or request.form.get("passenger_name", "")
+      ).strip()
+      passenger_email = (
+          request.form.get(f"passenger_email_{passenger_number}")
+          or request.form.get("passenger_email", "")
+      ).strip().lower()
+      passenger_phone = (
+          request.form.get(f"passenger_phone_{passenger_number}")
+          or request.form.get("passenger_phone", "")
+      ).strip()
+      passenger_gender = (
+          request.form.get(f"passenger_gender_{passenger_number}")
+          or request.form.get("passenger_gender", "")
+      )
+      passenger_dob = (
+          request.form.get(f"passenger_dob_{passenger_number}")
+          or request.form.get("passenger_dob", "")
+      )
 
       if not passenger_name or not passenger_email or not passenger_phone:
         flash("Please fill in all required passenger details.", "error")
@@ -675,6 +719,9 @@ def payment():
   if "user_id" not in session:
     return redirect(url_for("login"))
 
+  if session.get("payment_completed") and request.method == "GET":
+    return redirect(url_for("booking_confirmation"))
+
   flight_id = session.get("selected_flight_id")
   selected_seats = session.get("selected_seats") or [session.get("selected_seat")]
   passengers = session.get("passengers") or ([session.get("passenger")] if session.get("passenger") else [])
@@ -704,7 +751,7 @@ def payment():
       return redirect(url_for("booking_confirmation"))
 
     if not payment_method:
-      flash("Please select a payment method.", "error")
+      flash("Please select payment method to continue paying.", "error")
       return redirect(url_for("payment"))
 
     if flight.get("available_seats", 0) < passenger_count:
@@ -769,7 +816,7 @@ def payment():
 
     return redirect(url_for("booking_confirmation"))
 
-  return render_template(
+  response = make_response(render_template(
       "booking/payment.html",
       flight=flight,
       selected_seats=selected_seats,
@@ -779,7 +826,11 @@ def payment():
       taxes=taxes,
       total=total,
       passenger_count=passenger_count,
-  )
+  ))
+  response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+  response.headers["Pragma"] = "no-cache"
+  response.headers["Expires"] = "0"
+  return response
 
 
 @app.route("/booking-confirmation")
@@ -788,34 +839,42 @@ def booking_confirmation():
   if "user_id" not in session:
     return redirect(url_for("login"))
 
-  booking_id = session.get("booking_id")
+  booking_ids = session.get("booking_ids") or []
+  if not booking_ids and session.get("booking_id"):
+    booking_ids = [session["booking_id"]]
 
-  if not booking_id:
+  if not booking_ids:
     flash("Booking not found.", "error")
     return redirect(url_for("home"))
 
   try:
-    booking = bookings_collection.find_one({"_id": ObjectId(booking_id)})
+    object_ids = [ObjectId(booking_id) for booking_id in booking_ids if booking_id]
+    bookings = list(bookings_collection.find({
+        "_id": {"$in": object_ids},
+        "user_id": session["user_id"],
+    }))
   except Exception:
-    booking = None
+    bookings = []
 
-  if not booking:
+  if not bookings:
     flash("Booking not found.", "error")
     return redirect(url_for("home"))
+
+  primary_booking = bookings[0]
 
   qr_data = f"""
 SkyBook Flight Ticket
 
-PNR: {booking['pnr']}
-Flight: {booking['flight_number']}
-Date: {booking.get('flight_date', '')}
-From: {booking['from']} ({booking['from_code']})
-To: {booking['to']} ({booking['to_code']})
-Departure: {booking['departure']}
-Arrival: {booking['arrival']}
-Passenger: {booking['passenger']['name']}
-Seat: {booking['seat']}
-Status: {booking['booking_status']}
+PNR: {primary_booking['pnr']}
+Flight: {primary_booking['flight_number']}
+Date: {primary_booking.get('flight_date', '')}
+From: {primary_booking['from']} ({primary_booking['from_code']})
+To: {primary_booking['to']} ({primary_booking['to_code']})
+Departure: {primary_booking['departure']}
+Arrival: {primary_booking['arrival']}
+Passengers: {', '.join(booking['passenger']['name'] for booking in bookings if booking.get('passenger'))}
+Seats: {', '.join(booking['seat'] for booking in bookings if booking.get('seat'))}
+Status: {primary_booking['booking_status']}
 """
 
   qr = qrcode.QRCode(version=1, box_size=4, border=2)
@@ -829,14 +888,21 @@ Status: {booking['booking_status']}
   qr_image.save(buffer, format="PNG")
   qr_code = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-  booking_total = session.get("booking_total", booking.get("total"))
+  booking_total = session.get("booking_total")
+  if booking_total is None:
+    booking_total = sum(int(booking.get("total", 0) or 0) for booking in bookings)
 
-  return render_template(
+  response = make_response(render_template(
       "booking/confirmation.html",
-      booking=booking,
+      booking=primary_booking,
+      bookings=bookings,
       qr_code=qr_code,
       booking_total=booking_total,
-  )
+  ))
+  response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+  response.headers["Pragma"] = "no-cache"
+  response.headers["Expires"] = "0"
+  return response
 
 
 @app.route("/ticket/<booking_id>")
@@ -857,19 +923,24 @@ def ticket(booking_id):
     flash("Ticket not found.", "error")
     return redirect(url_for("booking_history"))
 
+  booking = normalize_booking_for_display(booking)
+  passenger_name = get_passenger_name(booking.get("passenger"))
+  from_code = booking.get("from_code", "")
+  to_code = booking.get("to_code", "")
+
   qr_data = f"""
 SkyBook Flight Ticket
 
-PNR: {booking['pnr']}
-Flight: {booking['flight_number']}
+PNR: {booking.get('pnr', '')}
+Flight: {booking.get('flight_number', '')}
 Date: {booking.get('flight_date', '')}
-From: {booking['from']} ({booking['from_code']})
-To: {booking['to']} ({booking['to_code']})
-Departure: {booking['departure']}
-Arrival: {booking['arrival']}
-Passenger: {booking['passenger']['name']}
-Seat: {booking['seat']}
-Status: {booking['booking_status']}
+From: {booking.get('from', '')} ({from_code})
+To: {booking.get('to', '')} ({to_code})
+Departure: {booking.get('departure', '')}
+Arrival: {booking.get('arrival', '')}
+Passenger: {passenger_name}
+Seat: {booking.get('seat', '')}
+Status: {booking.get('booking_status', '')}
 """
 
   qr = qrcode.QRCode(version=1, box_size=4, border=2)
@@ -890,8 +961,22 @@ Status: {booking['booking_status']}
   else:
     booking["formatted_date"] = "Date unavailable"
 
+  booking_total = booking.get("total")
+  if booking_total is None:
+    try:
+      booking_total = int(float(booking.get("base_fare", 0) or 0)) + int(float(booking.get("taxes", 0) or 0))
+    except (TypeError, ValueError):
+      booking_total = 0
+
+  if booking_total is None:
+    booking_total = 0
+
   return render_template(
-      "booking/confirmation.html", booking=booking, qr_code=qr_code
+      "booking/confirmation.html",
+      booking=booking,
+      bookings=[booking],
+      qr_code=qr_code,
+      booking_total=booking_total,
   )
 
 
@@ -912,6 +997,10 @@ def download_ticket(booking_id):
   if not booking:
     flash("Ticket not found.", "error")
     return redirect(url_for("booking_history"))
+
+  passenger_name = get_passenger_name(booking.get("passenger"))
+  from_code = booking.get("from_code", "")
+  to_code = booking.get("to_code", "")
 
   buffer = io.BytesIO()
   pdf = canvas.Canvas(buffer, pagesize=(595, 842))
@@ -946,11 +1035,11 @@ def download_ticket(booking_id):
   # Flight Header
   pdf.setFillColorRGB(0.08, 0.09, 0.13)
   pdf.setFont("Helvetica-Bold", 16)
-  pdf.drawString(60, 700, booking["flight_number"])
+  pdf.drawString(60, 700, booking.get("flight_number", ""))
 
   pdf.setFont("Helvetica", 10)
   pdf.setFillColorRGB(0.40, 0.42, 0.46)
-  pdf.drawString(60, 682, booking["airline"])
+  pdf.drawString(60, 682, booking.get("airline", ""))
   pdf.drawRightString(535, 700, booking.get("flight_date", ""))
 
   pdf.setStrokeColorRGB(0.85, 0.85, 0.87)
@@ -959,14 +1048,14 @@ def download_ticket(booking_id):
   # Route
   pdf.setFillColorRGB(0.08, 0.09, 0.13)
   pdf.setFont("Helvetica-Bold", 30)
-  pdf.drawString(65, 610, booking["from_code"])
+  pdf.drawString(65, 610, from_code)
 
   pdf.setFont("Helvetica-Bold", 17)
-  pdf.drawString(65, 580, booking["departure"])
+  pdf.drawString(65, 580, booking.get("departure", ""))
 
   pdf.setFont("Helvetica", 9)
   pdf.setFillColorRGB(0.40, 0.42, 0.46)
-  pdf.drawString(65, 562, booking["from"])
+  pdf.drawString(65, 562, booking.get("from", ""))
 
   pdf.setFillColorRGB(0.20, 0.21, 0.25)
   pdf.setFont("Helvetica-Bold", 20)
@@ -974,14 +1063,14 @@ def download_ticket(booking_id):
 
   pdf.setFillColorRGB(0.08, 0.09, 0.13)
   pdf.setFont("Helvetica-Bold", 30)
-  pdf.drawRightString(530, 610, booking["to_code"])
+  pdf.drawRightString(530, 610, to_code)
 
   pdf.setFont("Helvetica-Bold", 17)
-  pdf.drawRightString(530, 580, booking["arrival"])
+  pdf.drawRightString(530, 580, booking.get("arrival", ""))
 
   pdf.setFont("Helvetica", 9)
   pdf.setFillColorRGB(0.40, 0.42, 0.46)
-  pdf.drawRightString(530, 562, booking["to"])
+  pdf.drawRightString(530, 562, booking.get("to", ""))
 
   # Passenger
   pdf.setStrokeColorRGB(0.85, 0.85, 0.87)
@@ -994,8 +1083,8 @@ def download_ticket(booking_id):
 
   pdf.setFillColorRGB(0.08, 0.09, 0.13)
   pdf.setFont("Helvetica-Bold", 13)
-  pdf.drawString(65, 483, booking["passenger"]["name"])
-  pdf.drawString(300, 483, booking["seat"])
+  pdf.drawString(65, 483, passenger_name)
+  pdf.drawString(300, 483, booking.get("seat", ""))
 
   # Reference
   pdf.setFillColorRGB(0.40, 0.42, 0.46)
@@ -1004,7 +1093,7 @@ def download_ticket(booking_id):
 
   pdf.setFillColorRGB(0.08, 0.09, 0.13)
   pdf.setFont("Helvetica-Bold", 18)
-  pdf.drawString(65, 420, booking["pnr"])
+  pdf.drawString(65, 420, booking.get("pnr", ""))
 
   # Payment
   pdf.setFillColorRGB(0.40, 0.42, 0.46)
@@ -1013,7 +1102,7 @@ def download_ticket(booking_id):
 
   pdf.setFillColorRGB(0.08, 0.09, 0.13)
   pdf.setFont("Helvetica-Bold", 11)
-  pdf.drawString(300, 420, booking["payment_status"])
+  pdf.drawString(300, 420, booking.get("payment_status", ""))
 
   # Fare
   pdf.setStrokeColorRGB(0.85, 0.85, 0.87)
@@ -1033,7 +1122,8 @@ def download_ticket(booking_id):
   pdf.setFillColorRGB(0.08, 0.09, 0.13)
   pdf.setFont("Helvetica-Bold", 14)
   pdf.drawString(65, 298, "TOTAL PAID")
-  pdf.drawRightString(530, 298, f"Rs. {booking['total']:,}")
+  total_value = booking.get("total", 0) or 0
+  pdf.drawRightString(530, 298, f"Rs. {total_value:,}")
 
   # Footer
   pdf.setFillColorRGB(0.40, 0.42, 0.46)
@@ -1053,7 +1143,7 @@ def download_ticket(booking_id):
   return send_file(
       buffer,
       as_attachment=True,
-      download_name=f"SkyBook_Ticket_{booking['pnr']}.pdf",
+      download_name=f"SkyBook_Ticket_{booking.get('pnr', 'booking')}.pdf",
       mimetype="application/pdf",
   )
 
@@ -1283,7 +1373,7 @@ def forgot_password():
         datetime.now() + timedelta(minutes=10)
     ).timestamp()
 
-    if not send_reset_otp_email(email, otp):
+    if not email_utils.send_reset_otp_email(email, otp):
       session.pop("reset_otp", None)
       session.pop("reset_email", None)
       session.pop("reset_otp_expiry", None)

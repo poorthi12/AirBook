@@ -298,7 +298,7 @@ while current_date <= end_date:
 
         flight = {
             "flight_number": f"SK{flight_number}",
-            "airline": "SkyBook Airways",
+            "airline": "AirBook Airways",
 
             "from": route["from"],
             "from_code": from_code,
@@ -350,7 +350,7 @@ result = flights_collection.insert_many(flights)
 
 
 print("----------------------------------------")
-print("SkyBook flights inserted successfully!")
+print("AirBook flights inserted successfully!")
 print("----------------------------------------")
 print("Total flights:", len(result.inserted_ids))
 print("Cities:", len(cities))

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Booking Confirmed | SkyBook{% endblock %}
+{% block title %}Booking Confirmed | AirBook{% endblock %}
 
 {% block content %}
 
@@ -21,6 +21,10 @@
             <p>
                 Your payment was successful and your ticket has been confirmed.
             </p>
+
+            <div id="redirectCountdown" class="redirect-countdown" hidden>
+                Redirecting to home in <span id="countdownValue">5</span>s
+            </div>
 
         </div>
 
@@ -94,13 +98,13 @@
             <div class="confirmation-details">
 
                 <div>
-                    <span>PASSENGER</span>
-                    <strong>{{ booking.passenger.name }}</strong>
+                    <span>PASSENGERS</span>
+                    <strong>{{ bookings | map(attribute='passenger.name') | join(', ') }}</strong>
                 </div>
 
                 <div>
-                    <span>SEAT</span>
-                    <strong>{{ booking.seat }}</strong>
+                    <span>SEATS</span>
+                    <strong>{{ bookings | map(attribute='seat') | join(', ') }}</strong>
                 </div>
 
                 <div>
@@ -173,5 +177,31 @@
     </div>
 
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const hasCompleted = sessionStorage.getItem("airbookPaymentCompleted");
+        const countdownBox = document.getElementById("redirectCountdown");
+        const countdownValue = document.getElementById("countdownValue");
+
+        if (hasCompleted === "true") {
+            let secondsLeft = 5;
+            countdownBox.hidden = false;
+
+            const updateCountdown = function () {
+                countdownValue.textContent = secondsLeft;
+                if (secondsLeft <= 0) {
+                    sessionStorage.removeItem("airbookPaymentCompleted");
+                    window.location.href = "/";
+                    return;
+                }
+                secondsLeft -= 1;
+                setTimeout(updateCountdown, 1000);
+            };
+
+            updateCountdown();
+        }
+    });
+</script>
 
 {% endblock %}

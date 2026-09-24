@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}SkyBook | Home{% endblock %}
+{% block title %}AirBook | Home{% endblock %}
 
 {% block content %}
 
@@ -53,26 +53,6 @@
 
         <!-- SEARCH CARD -->
         <div class="search-card">
-
-            <div class="trip-options">
-
-                <label>
-                    <input type="radio"
-                           name="trip"
-                           value="oneway"
-                           checked>
-                    One Way
-                </label>
-
-                <label>
-                    <input type="radio"
-                           name="trip"
-                           value="roundtrip">
-                    Round Trip
-                </label>
-
-            </div>
-
 
             <form action="{{ url_for('search_flights') }}" method="POST">
 
@@ -171,30 +151,6 @@
                                     class="styled-date"
                                     name="departure"
                                     required>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- RETURN -->
-                    <div class="field return-field">
-
-                        <label>RETURN</label>
-
-                        <div class="input-box">
-
-                            <span class="field-icon date-icon">📅</span>
-
-                            <div>
-                                <small>Date</small>
-
-                                <input
-                                    type="date"
-                                    id="returnDate"
-                                    class="styled-date"
-                                    name="return_date">
                             </div>
 
                         </div>
